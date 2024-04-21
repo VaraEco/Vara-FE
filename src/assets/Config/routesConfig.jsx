@@ -14,7 +14,8 @@ import Onboarding from "../../Components/Onboarding/Onboarding";
 import ReferralPage from "../../Components/Referral/ReferralPage";
 import Settings from "../../Components/Settings/Settings";
 import ComingSoon from "../../Components/ComingSoon/ComingSoon";
-import Measurement from "../../Components/Measurement/measurement";
+import Metrics from "../../Components/DataCollection/metrics";
+import DataSource from "../../Components/DataCollection/datasources";
 
 export const routesConfig = [
     {
@@ -89,17 +90,45 @@ export const routesConfig = [
         isUpper: true,
     },
     {
-        path: "/measurement",
-        name: "Measurement",
+        path: "/metrics",
+        name: "Metrics",
         logo: InsightsSvg(),
         component: (
             <ProviderConfig showTag={false}>
-                <DashboardWrapper selectdRoute={"measurement"}>
-                    <Measurement></Measurement>
+                <DashboardWrapper selectdRoute={"metrics"}>
+                    <Metrics></Metrics>
                 </DashboardWrapper>
             </ProviderConfig>
         ),
         hidden: false,
+        isUpper: true,
+    },
+    {
+        path: "/metrics/:data_sources",
+        name: "Datasource",
+        logo: InsightsSvg(),
+        component: (
+            <ProviderConfig showTag={false}>
+                <DashboardWrapper selectdRoute={"datasources"}>
+                    <DataSource></DataSource>
+                </DashboardWrapper>
+            </ProviderConfig>
+        ),
+        hidden: true,
+        isUpper: true,
+    },
+    {
+        path: "/metrics/admin",
+        name: "Datasource",
+        logo: InsightsSvg(),
+        component: (
+            <ProviderConfig showTag={false}>
+                <DashboardWrapper selectdRoute={"datasources"}>
+                    <Admin></Admin>
+                </DashboardWrapper>
+            </ProviderConfig>
+        ),
+        hidden: true,
         isUpper: true,
     },
     {

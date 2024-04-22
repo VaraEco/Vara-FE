@@ -1,20 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { supabase } from '../../supabaseClient';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { supabase } from "../../supabaseClient";
 
 export default function Metrics() {
   const [tableData, setTableData] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [newRowData, setNewRowData] = useState({ parameter: '', factory1: '', factory2: '' });
+  const [newRowData, setNewRowData] = useState({
+    parameter: "",
+    factory1: "",
+    factory2: "",
+  });
 
   useEffect(() => {
-    fetchMeasurement()
-  }, [])
+    fetchMeasurement();
+  }, []);
 
   async function fetchMeasurement() {
-    const { data } = await supabase
-      .from(`metrics`)
-      .select('*')
+    const { data } = await supabase.from(`metrics`).select("*");
     setTableData(data);
   }
 
@@ -45,7 +47,11 @@ export default function Metrics() {
   async function createMeasurement() {
     await supabase
       .from(`metrics`)
-      .insert({ parameter: newRowData.parameter, factory1: newRowData.factory1 , factory2: newRowData.factory2 })
+      .insert({
+        parameter: newRowData.parameter,
+        factory1: newRowData.factory1,
+        factory2: newRowData.factory2,
+      });
   }
 
   return (
@@ -71,13 +77,15 @@ export default function Metrics() {
               {tableData.map((row, index) => (
                 <tr key={index}>
                   <td className="border border-gray-300 px-4 py-2">
-                    {row.parameter}
+                    <Link to={`/metrics/${row.parameter}`}>
+                      {row.parameter}
+                    </Link>
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {row.factory1}
+                    <Link to={`/metrics/${row.parameter}`}>{row.factory1}</Link>
                   </td>
                   <td className="border border-gray-300 px-4 py-2">
-                    {row.factory2}
+                    <Link to={`/metrics/${row.parameter}`}>{row.factory2}</Link>
                   </td>
                 </tr>
               ))}

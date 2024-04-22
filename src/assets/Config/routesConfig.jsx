@@ -15,6 +15,8 @@ import ReferralPage from "../../Components/Referral/ReferralPage";
 import Settings from "../../Components/Settings/Settings";
 import ComingSoon from "../../Components/ComingSoon/ComingSoon";
 import Metrics from "../../Components/DataCollection/metrics";
+import Certification from "../../Components/DataCollection/certification";
+import BuyerManagement from "../../Components/DataCollection/buyerManagement";
 import DataSource from "../../Components/DataCollection/datasources";
 
 export const routesConfig = [
@@ -129,6 +131,34 @@ export const routesConfig = [
             </ProviderConfig>
         ),
         hidden: true,
+        isUpper: true,
+    },
+    {
+        path: "/certification",
+        name: "Certification",
+        logo: InsightsSvg(),
+        component: (
+            <ProviderConfig showTag={false}>
+                <DashboardWrapper selectdRoute={"certification"}>
+                    <Certification></Certification>
+                </DashboardWrapper>
+            </ProviderConfig>
+        ),
+        hidden: false,
+        isUpper: true,
+    },
+    {
+        path: "/buyermanagement",
+        name: "Buyer Mangement",
+        logo: InsightsSvg(),
+        component: (
+            <ProviderConfig showTag={false}>
+                <DashboardWrapper selectdRoute={"buyermanagement"}>
+                    <BuyerManagement></BuyerManagement>
+                </DashboardWrapper>
+            </ProviderConfig>
+        ),
+        hidden: false,
         isUpper: true,
     },
     {

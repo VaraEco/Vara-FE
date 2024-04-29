@@ -41,7 +41,7 @@ export default function Measurment() {
   return (
     <div className="relative flex flex-col justify-center overflow-hidden mt-20">
       <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-4xl">
-        <h1 className="text-2xl text-center mb-4">Measure</h1>
+        <h1 className="text-2xl text-center mb-4">Supplier Management</h1>
         <div className="container mx-auto">
           <button
             onClick={handleOpenPopup}

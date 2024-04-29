@@ -19,6 +19,7 @@ import DataCollection from "../../Components/DataCollection/datacollection";
 import Certification from "../../Components/DataCollection/certification";
 import BuyerManagement from "../../Components/DataCollection/buyerManagement";
 import DataSource from "../../Components/DataCollection/datasources";
+import SupplierManagement from "../../Components/DataCollection/SupplierManagement";
 
 export const routesConfig = [
     {
@@ -128,6 +129,20 @@ export const routesConfig = [
             <ProviderConfig showTag={false}>
                 <DashboardWrapper selectdRoute={"buyermanagement"}>
                     <BuyerManagement></BuyerManagement>
+                </DashboardWrapper>
+            </ProviderConfig>
+        ),
+        hidden: false,
+        isUpper: true,
+    },
+    {
+        path: "/suppliermanagement",
+        name: "Supplier Management",
+        logo: InsightsSvg(),
+        component: (
+            <ProviderConfig showTag={false}>
+                <DashboardWrapper selectdRoute={"suppliermanagement"}>
+                    <SupplierManagement></SupplierManagement>
                 </DashboardWrapper>
             </ProviderConfig>
         ),

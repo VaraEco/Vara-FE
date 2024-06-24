@@ -101,6 +101,7 @@ export default function ProjectManagement() {
       </div>
       {isPopupOpen && (
         <PopUp
+          title={'New Project'}
           fields={popupFields}
           newRowData={newProject}
           handleInputChange={handleInputChange}

@@ -22,6 +22,24 @@ export default function Parameteroverview() {
     fetchMeasurement();
     fetchFacilities();
 
+    const patchUserCompanyId = async () => {
+      const varaCompanyId = await generalFunction.getCompanyId();
+      try {
+        const companyExists = await generalFunction.checkIfUserCompanyIdExist(generalFunction.getUserCredentials()?.email)
+        if (companyExists) {
+            await generalFunction.supabase_updateData(
+              "users",
+              generalFunction.getUserCredentials()?.email,
+              {
+                  varaCompanyId: varaCompanyId
+              });
+        }
+      } catch (error) {
+        throw new Error("Company Id did not update");
+      } };
+
+      patchUserCompanyId ();
+
   }, []);
 
   async function fetchFacilities() {

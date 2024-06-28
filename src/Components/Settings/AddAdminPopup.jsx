@@ -18,7 +18,7 @@ const AddAdminPopup = ({ setAdminPopup, setFlag }) => {
     setIsValidEmail(emailRegex.test(newEmail));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setAdminPopup(false);
     let entityId = mainConfig.QUEST_ENTITY_ID;
     generalFunction.showLoader();
@@ -56,6 +56,21 @@ const AddAdminPopup = ({ setAdminPopup, setFlag }) => {
           let data = await generalFunction.supabase_addData("users", json);
           if (!!data.length) {
             await generalFunction.createUserPermission({user_id: `${data[0].id}`, role: "ADMIN", assigned_by: `${localStorage.getItem("varaUserId")}`, status: true})
+          }
+
+          const varaCompanyId = await generalFunction.getCompanyId();
+          let AdminDetails = await JSON.parse(localStorage.getItem("adminDetails"));
+          try {
+            await generalFunction.supabase_updateData(
+              "users",
+              email.toLowerCase(),
+              {
+                  varaCompanyId: varaCompanyId,
+                  company_id: AdminDetails?.ownerEntityId
+              }
+          );
+          } catch (error) {
+            throw new Error("Company Id did not update for invited user");
           }
 
           setFlag((prev) => !prev);

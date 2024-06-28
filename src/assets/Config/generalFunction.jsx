@@ -58,8 +58,9 @@ export const generalFunction = {
 
     getCompanyId: async () => {
         let company_id = localStorage.getItem("varaCompanyId");
-        if (!company_id) {
+        if (!company_id || company_id === null) {
             await generalFunction.setCompanyId();
+            return localStorage.getItem("varaCompanyId");
         }
         return company_id;
     },
@@ -69,7 +70,7 @@ export const generalFunction = {
         if (!AdminDetails) {
             throw new Error("No admin details found in localStorage");
         }
-        const companyInfo = await generalFunction.getCompanyVaraID(AdminDetails.ownerEntityId);
+        const companyInfo = await generalFunction.mapCompanyVaraIDFromQuest(AdminDetails.ownerEntityId);
         if (companyInfo && companyInfo.length > 0) {
             localStorage.setItem('varaCompanyId', companyInfo[0]['id']);
         } else {
@@ -247,7 +248,7 @@ export const generalFunction = {
     },
 
     // Function to get Vara's company id from Quest_id
-    getCompanyVaraID: async (quest_company_id) => {
+    mapCompanyVaraIDFromQuest: async (quest_company_id) => {
         try {
             const { data, error } = await supabase
               .from('company')
@@ -261,6 +262,20 @@ export const generalFunction = {
             console.error("Error fetching table row:", error);
             return null;
         }
+    },
+
+    //Check if company Id already exists in the user
+    checkIfUserCompanyIdExist: async (email) => {
+        const { data } = await supabase
+          .from(`users`)
+          .select('varaCompanyId')
+          .eq('email', email)
+
+          if(data == null) {
+            return true;
+          }
+
+        return false;
     },
 
     updateRow: async(table, update_column, update_data, key_column, key_data) => {

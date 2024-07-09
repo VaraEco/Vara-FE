@@ -32,7 +32,7 @@ export const userPermissions = {
         return true;
     },
 
-    hasUserPermissions: async (page) => {
+    hasUserPermissions: async (page = null) => {
         try {
             const UserPermission = await fetchUserPermission();
             if (!UserPermission || !UserPermission[0] || !UserPermission[0].role) {
@@ -47,16 +47,17 @@ export const userPermissions = {
                 return false;
             } else if (role !== 'FIELD MANAGER' && page === 'Data Entry') {
                 return false;
+            } else if (role === 'NO_ROLE') {
+                return false
             }
             return true;
         } catch (error) {
             console.error('Error fetching user permissions:', error);
-            console.log('false');
             return false;
         }
     },
 
-    hasUserSettingPermissions: async (page) => {
+    hasUserSettingPermissions: async (settings = null) => {
         try {
             const UserPermission = await fetchUserPermission();
             if (!UserPermission || !UserPermission[0] || !UserPermission[0].role) {
@@ -65,17 +66,18 @@ export const userPermissions = {
 
             const role = UserPermission[0].role;
 
-            if (role === 'FIELD MANAGER' && page === 'manage') {
+            if (role === 'FIELD MANAGER' && settings === 'manage') {
                 return false;
-            } else if (role === 'FIELD MANAGER' && page === 'managefacilities') {
+            } else if (role === 'FIELD MANAGER' && settings === 'managefacilities') {
                 return false;
-            } else if (role === 'FIELD MANAGER' && page === 'manageusers') {
+            } else if (role === 'FIELD MANAGER' && settings === 'manageusers') {
+                return false;
+            } else if( role === 'NO_ROLE') {
                 return false;
             }
             return true;
         } catch (error) {
             console.error('Error fetching user permissions:', error);
-            console.log('false');
             return false;
         }
     },

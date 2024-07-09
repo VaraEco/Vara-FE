@@ -15,7 +15,7 @@ const PopUp = ({
   validationErrors,
 }) => {
   return (
-    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 w-1/2 h-1/2 max-w-4xl max-h-screen rounded-lg overflow-y-auto">
         <h2 className="text-lg font-mdm mb-4 flex justify-center items-center">{title}</h2>
         <form onSubmit={(e) => e.preventDefault()}>
@@ -51,14 +51,14 @@ const PopUp = ({
                 <select
                   id={field.id}
                   name={field.id}
-                  value={ newRowData[field.id] || field.default || ''}
+                  value={ newRowData[field.id] || field.default || '' }
                   onChange={handleInputChange}
                   className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
                   readOnly={readOnly}
                 >
-                  <option value="">Select {field.label.toLowerCase()}</option>
+                  {!field.default && <option value="">Select {field.label.toLowerCase()}</option>}
                   {field.options.map(option => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
+                    <option key={option.value} value={option.value} data-key={option.key || option.value || ''}>{option.label}</option>
                   ))}
                 </select>
               ) : field.type === 'file' ? (
@@ -75,7 +75,7 @@ const PopUp = ({
                   id={field.id}
                   name={field.id}
                   value={newRowData[field.id] || field.default || ''}
-                  onChange={handleInputChange}
+                  onChange={field.readOnly ? null : handleInputChange}
                   className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
                   readOnly={readOnly}
                 />

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 
 const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions = false, actions = [], rowsPerPage = 10, enablePagination = false, searchableColumn }) => {
+  fields = fields.filter(field => !field.no_show);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,6 +63,7 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
         </thead>
         <tbody>
           {paginatedData.map((row, index) => {
+            const realIndex = index + (currentPage - 1) * rowsPerPage;
             const clickable = hasLink && fields.some(f => f.link);
             return (
               <tr
@@ -78,7 +80,7 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
                   <td className="border px-4 py-2">
                     {actions.map((ActionButton, actionIndex) => (
                       <span className="m-2" key={actionIndex} onClick={(e) => e.stopPropagation()}>
-                        {React.cloneElement(ActionButton, { handleFunction: () => ActionButton.props.handleFunction(row, index) })}
+                        {React.cloneElement(ActionButton, { handleFunction: () => ActionButton.props.handleFunction(row, index, realIndex) })}
                       </span>
                     ))}
                   </td>
@@ -89,7 +91,7 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
         </tbody>
       </table>
       {enablePagination && (
-        <div className="flex justify-end w-[90%] mt-4">
+        <div className="flex justify-end w-[90%] mt-4 z-0">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}

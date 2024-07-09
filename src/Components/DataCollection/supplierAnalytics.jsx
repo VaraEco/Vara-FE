@@ -156,10 +156,10 @@ export default function SupplierAnalytics() {
         handleCloseCertBtn();
     };
 
-    const openEditCert = (row, index) => {
+    const openEditCert = (row, index, realIndex) => {
         setValidationErrors({});
         setCertRowData(row);
-        setCertRowIndex(index);
+        setCertRowIndex(realIndex);
         setEditCertOpen(true);
     }
 
@@ -222,10 +222,10 @@ export default function SupplierAnalytics() {
         handleCloseProdBtn();
     };
 
-    const openEditProd = (row, index) => {
+    const openEditProd = (row, index, realIndex) => {
         setValidationErrors({});
         setProdRowData(row);
-        setProdRowIndex(index);
+        setProdRowIndex(realIndex);
         setEditProdOpen(true);
     }
 
@@ -313,10 +313,10 @@ export default function SupplierAnalytics() {
         closeDelete();
     };
 
-    const openEditEmail = (row, index) => {
+    const openEditEmail = (row, index, realIndex) => {
         setValidationErrors({});
         setEmailRowData(row);
-        setEmailRowIndex(index);
+        setEmailRowIndex(realIndex);
         setEditEmailOpen(true);
     }
 
@@ -438,6 +438,8 @@ export default function SupplierAnalytics() {
             tableData={productData}
             hasActions={true}
             actions={prodActions}
+            rowsPerPage={5}
+            enablePagination={productData.length > 5}
             searchableColumn="product_name"
         />
         <div className="mb-6 mt-10 flex items-center justify-center">
@@ -475,6 +477,8 @@ export default function SupplierAnalytics() {
             tableData={certificateData}
             hasActions={true}
             actions={certActions}
+            rowsPerPage={5}
+            enablePagination={certificateData.length > 5}
             searchableColumn="certificate_name"
         />
         <div className="mb-6 mt-10 flex items-center justify-center">

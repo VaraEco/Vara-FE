@@ -2,7 +2,7 @@ import React from 'react';
 
 const ErrorPopUp = ({ closePopUp, errorMessage }) => {
     return (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white w-1/2 p-6 rounded-lg">
                 <h2 className="text-left text-3xl font-bold mb-4 text-red-500">Error!</h2>
                 <p>{errorMessage}</p>

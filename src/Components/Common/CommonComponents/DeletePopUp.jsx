@@ -2,7 +2,7 @@ import React from 'react';
 
 const DeletePopUp = ({closeDelete, handleFunction}) => {
     return (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded-lg">
                 <h2 className="text-left text-lg font-bold mb-4">Confirm Deletion</h2>
                 <p>Are you sure you want to <span className="text-red-500">permanently remove</span> this item?</p>

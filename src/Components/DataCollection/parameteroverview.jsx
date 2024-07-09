@@ -4,6 +4,7 @@ import './parameteroverview.css';
 import { generalFunction } from '../../assets/Config/generalFunction';
 import Button from '../Common/CommonComponents/Button';
 import {Link} from 'react-router-dom';
+import { userPermissions } from '../../assets/Config/accessControl';
 
 export default function Parameteroverview() {
     const [tableData, setTableData] = useState([]);
@@ -21,11 +22,18 @@ export default function Parameteroverview() {
     const [popupProcesses, setPopupProcesses] = useState([]);
     const [selectedPopupFacility, setSelectedPopupFacility] = useState('');
     const [selectedPopupProcess, setSelectedPopupProcess] = useState('');
+    const [hasPermission, setHasPermission] = useState(false);
 
 
     useEffect(() => {
         fetchMeasurement();
         fetchFacilities();
+        const checkPermission = async () => {
+            const permission = await userPermissions.hasUserSettingPermissions();
+            setHasPermission(permission);
+        };
+
+        checkPermission();
     }, []);
 
     async function fetchFacilities() {
@@ -320,12 +328,20 @@ export default function Parameteroverview() {
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
             <div className="w-full m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-5.5xl">
-                <h1 className="text-2xl text-center mb-4">Sustainability Metrics</h1>
                 <div className="container mx-auto">
+                {hasPermission ? (
+                    <>
+                    <h1 className="text-2xl text-center mb-4">Sustainability Metrics</h1>
                     {renderTable()}
                     <button onClick={handleOpenParameterPopup} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                         Add Parameter
                     </button>
+                    </>
+                ) : (
+                    <div className="text-left p-10 mt-4 text-black-500">
+                        Contact Admin
+                    </div>
+                )}
 
                     {isParameterPopupOpen && (
                         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">

@@ -5,7 +5,6 @@ import { generalFunction } from "../../assets/Config/generalFunction";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../Common/AppContext";
 import { mainConfig } from "../../assets/Config/appConfig";
-import { supabase } from "../../supabaseClient";
 
 export default function Onboarding() {
     const [answer, setAnswer] = useState({});

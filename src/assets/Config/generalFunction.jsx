@@ -853,5 +853,26 @@ export const generalFunction = {
           console.error('Error performing delete operation:', error);
           throw error;
         }
-    }
+    },
+
+    updateRole: async (userId, role = 'NO_ROLE', status = true, accessTill = null) => {
+        try {
+            const { data, error } = await supabase
+                .from('user_permissions')
+                .update({
+                    role: role,
+                    status: status,
+                    access_till: accessTill
+                })
+                .eq('user_id', userId);
+            
+            if (error) {
+                throw error;
+            }
+            return data;
+        } catch (error) {
+            console.error("Error updating user permissions:", error);
+            return null;
+        }
+    },
 }

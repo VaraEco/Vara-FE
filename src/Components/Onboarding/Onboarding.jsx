@@ -5,6 +5,7 @@ import { generalFunction } from "../../assets/Config/generalFunction";
 import { useNavigate } from "react-router-dom";
 import { ThemeContext } from "../Common/AppContext";
 import { mainConfig } from "../../assets/Config/appConfig";
+import { supabase } from "../../supabaseClient";
 
 export default function Onboarding() {
     const [answer, setAnswer] = useState({});
@@ -46,6 +47,11 @@ export default function Onboarding() {
                         
                     }
                 );
+
+                let userdata = await generalFunction.getUserIdFromEmail(generalFunction.getUserCredentials()?.email);
+
+                await generalFunction.updateRole(userdata[0].id);
+
             }
             navigate("/data_collection");
         } else {

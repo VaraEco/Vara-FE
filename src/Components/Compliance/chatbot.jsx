@@ -6,7 +6,6 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const userId = JSON.parse(localStorage.getItem('varaUserId'));
-  console.log(userId)
 
   useEffect(() => {
     const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];

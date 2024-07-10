@@ -29,6 +29,7 @@ import SupplierAnalytics from "../../Components/DataCollection/supplierAnalytics
 import Parameter from "../../Components/DataCollection/parameter";
 import DataEntry from "../../Components/DataCollection/dataentry";
 import DataEntryDetails from '../../Components/DataCollection/dataentrydetails';
+import Chatbot from "../../Components/Compliance/chatbot";
 export const routesConfig = [
     {
         path: "/login",
@@ -283,4 +284,16 @@ export const routesConfig = [
         hidden: true,
         isUpper: true,
     },
+    {
+        path: "/chatbot",
+        name: "Chatbot",
+        logo: "",
+        component: (
+            <ProviderConfig showTag={false}>
+                <Chatbot />
+            </ProviderConfig>
+        ),
+        hidden: true,
+        isUpper: false,
+    }
 ];

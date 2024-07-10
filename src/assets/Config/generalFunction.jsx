@@ -511,7 +511,10 @@ export const generalFunction = {
                 sustainability_score: newRowData.sustainability_score,
                 key_contact: newRowData.key_contact,
                 key_email: newRowData.key_email,
-                company_id: company_id
+                company_id: company_id,
+                country: newRowData.country,
+                state: newRowData.state,
+                city: newRowData.city
             })
             .select();
     
@@ -638,7 +641,10 @@ export const generalFunction = {
                 key_product: rowData.key_product,
                 sustainability_score: rowData.sustainability_score,
                 key_contact: rowData.key_contact,
-                key_email: rowData.key_email
+                key_email: rowData.key_email,
+                country: rowData.country,
+                state: rowData.state,
+                city: rowData.city
             })
             .eq('id', rowData.id);
         
@@ -683,28 +689,30 @@ export const generalFunction = {
     validateData: (data, fields) => {
         const errors = {};
         fields.forEach(field => {
-            const value = data[field.id];
-            if (!value) {
-                errors[field.id] = `${field.label} is required`;
-            } else {
-                switch (field.type) {
-                    case 'email':
-                        if (!/\S+@\S+\.\S+/.test(value)) {
-                            errors[field.id] = `${field.label} is invalid`;
-                        }
-                        break;
-                    case 'date':
-                        if (isNaN(Date.parse(value))) {
-                            errors[field.id] = `${field.label} is not a valid date`;
-                        }
-                        break;
-                    case 'number':
-                        if (isNaN(value)) {
-                            errors[field.id] = `${field.label} must be a number`;
-                        }
-                        break;
-                    default:
-                        break;
+            if (!field.not_required) {
+                const value = data[field.id];
+                if (!value) {
+                    errors[field.id] = `${field.label} is required`;
+                } else {
+                    switch (field.type) {
+                        case 'email':
+                            if (!/\S+@\S+\.\S+/.test(value)) {
+                                errors[field.id] = `${field.label} is invalid`;
+                            }
+                            break;
+                        case 'date':
+                            if (isNaN(Date.parse(value))) {
+                                errors[field.id] = `${field.label} is not a valid date`;
+                            }
+                            break;
+                        case 'number':
+                            if (isNaN(value)) {
+                                errors[field.id] = `${field.label} must be a number`;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         });

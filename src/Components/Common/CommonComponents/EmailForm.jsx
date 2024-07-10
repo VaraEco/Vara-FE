@@ -75,7 +75,7 @@ const EmailForm = ({handleCancel, supplierEmail = false, supplierData, onSent}) 
     }
 
     return (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+        <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 w-1/2 h-3/4 max-w-4xl max-h-screen overflow-y-auto rounded-lg">
                 <form className="flex flex-col gap-y-2 mb-4">
                     <h3>Subject</h3>

@@ -794,7 +794,7 @@ export const generalFunction = {
         const { data, error } = await supabase
         .storage
         .from('Evidence')
-        .createSignedUrl(path, 60);  // URL valid for 60 seconds
+        .createSignedUrl(path, 86400);  // 24 hours expiry
 
         if (error) {
             throw error;

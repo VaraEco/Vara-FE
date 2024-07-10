@@ -4,10 +4,14 @@ import  Button from '../Common/CommonComponents/Button'
 import  Table from '../Common/CommonComponents/Table'
 import PopUp from '../Common/CommonComponents/PopUp'
 
+const HTMLContent = ({ html }) => (
+  <span dangerouslySetInnerHTML={{ __html: html }} />
+);
+
 export default function Compliance() {
   const [tableData, setTableData] = useState([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [newRowData, setNewRowData] = useState({ certification: '', status: '', due_date: '', task_assigned: '',  checklist: '' });
+  const [newRowData, setNewRowData] = useState({ name: '', date_published: '', document: '', chatbot_link: '' });
 
   const compliance_fields = [
     { id: 'name', label: 'Compliance Name', type: 'text' },
@@ -25,7 +29,12 @@ export default function Compliance() {
         console.error('Error fetching data:', error);
       }
     };
-    getData(); 
+    const newRow = { 
+      name: 'The Greenhouse Gas Protocol', 
+      date_published: '05/20/2023', 
+      document: '<a href="https://ghgprotocol.org/sites/default/files/standards/ghg-protocol-revised.pdf" target="_blank" rel="noopener noreferrer">PDF</a>', 
+      chatbot_link: '<a href="/chatbot" target="_blank" rel="noopener noreferrer">Link</a>' };
+    setTableData(prevData => formatData([...prevData, newRow]));
   }, [])
 
   const handleOpenPopup = () => {
@@ -35,7 +44,7 @@ export default function Compliance() {
   const handleClosePopup = () => {
     setIsPopupOpen(false);
     generalFunction.createCompliance(newRowData);
-    setNewRowData({ certification: '', status: '', due_date: '', task_assigned: '',  checklist: '' });
+    setNewRowData({ name: '', date_published: '', document: '', chatbot_link: '' });
   };
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -45,8 +54,17 @@ export default function Compliance() {
     }));
   };
   const handleAddRow = () => {
-    setTableData((prevData) => [...prevData, newRowData]);
+    const formattedRow = formatData([newRowData])[0];
+    setTableData((prevData) => [...prevData, formattedRow]);
     handleClosePopup();
+  };
+
+  const formatData = (data) => {
+    return data.map(row => ({
+      ...row,
+      document: <HTMLContent html={row.document} />,
+      chatbot_link: <HTMLContent html={row.chatbot_link} />
+    }));
   };
 
   return (
@@ -56,12 +74,7 @@ export default function Compliance() {
         fields={compliance_fields}
         tableData={tableData}
       />
-      <div className="mb-6 mt-10 flex items-center justify-center">
-        <Button
-          label="Add compliance"
-          handleFunction = {handleOpenPopup}
-        />
-      </div>
+      
       {isPopupOpen && (
         <PopUp
           fields={compliance_fields}

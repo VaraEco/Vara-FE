@@ -40,6 +40,7 @@ export const generalFunction = {
         localStorage.removeItem("adminDetails");
         localStorage.removeItem("varaCompanyId");
         localStorage.removeItem("varaUserId");
+        localStorage.removeItem("messages");
     },
 
     createUrl: (apiString) => {

@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from './Button';
+import IconError from "./IconError";
 
 const PopUp = ({
   title,
@@ -16,14 +17,20 @@ const PopUp = ({
 }) => {
   return (
     <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-      <div className="bg-white p-6 w-1/2 h-1/2 max-w-4xl max-h-screen rounded-lg overflow-y-auto">
+      <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
         <h2 className="text-lg font-mdm mb-4 flex justify-center items-center">{title}</h2>
         <form onSubmit={(e) => e.preventDefault()}>
           {fields.map((field) => (
-            <div className="mb-4" key={field.id}>
+            <div className="mb-4 text-sm font-thin" key={field.id}>
               <label htmlFor={field.id} className="block text-sm font-medium text-gray-700">
                 {field.label}
               </label>
+              {validationErrors && validationErrors[field.id] && (
+                <span className="text-red-500 font-thin text-xs flex items-center">
+                  <IconError className="mr-1" />
+                  {validationErrors[field.id]}
+                </span>
+              )}
               {field.type === 'table' ? (
                 <table className="border-separate border-spacing-0 border rounded-md shadow">
                   <thead>
@@ -76,11 +83,10 @@ const PopUp = ({
                   name={field.id}
                   value={newRowData[field.id] || field.default || ''}
                   onChange={field.readOnly ? null : handleInputChange}
-                  className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
+                  className={`border border-gray-300 rounded-md shadow-sm mt-1 block w-full ${field.readOnly ? 'bg-gray-100 cursor-not-allowed focus:outline-none disabled' : ''}`}
                   readOnly={readOnly}
                 />
               )}
-              {validationErrors && <span className="text-red-500 text-sm">{validationErrors[field.id]}</span>}
             </div>
           ))}
           <div className="flex justify-center items-center space-x-4">

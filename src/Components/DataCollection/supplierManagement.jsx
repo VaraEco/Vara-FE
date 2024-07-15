@@ -5,6 +5,8 @@ import Table from '../Common/CommonComponents/Table';
 import PopUp from '../Common/CommonComponents/PopUp';
 import DeletePopUp from '../Common/CommonComponents/DeletePopUp';
 import ErrorPopUp from '../Common/CommonComponents/ErrorPopUp.jsx';
+import IconDelete from '../Common/CommonComponents/IconDelete.jsx';
+import IconEdit from '../Common/CommonComponents/IconEdit.jsx';
 import { GetCountries, GetState, GetCity } from "react-country-state-city";
 
 export default function SupplierManagement() {
@@ -41,7 +43,7 @@ export default function SupplierManagement() {
     { id: 'country', label: 'Country', type: 'select', not_required: true, no_show: true, options: countryList.map(country => ({ key: country.id, value: country.name, label: country.name })) },
     { id: 'state', label: 'State', type: 'select', not_required: true, no_show: true, options: stateList.map(state => ({ key: state.id, value: state.name, label: state.name })) },
     { id: 'city', label: 'City', type: 'select', not_required: true, no_show: true, options: cityList.map(city => ({ key: city.id, value: city.name, label: city.name })) },
-    { id: 'location', label: 'Location', type: 'text', readOnly: true }
+    { id: 'location', label: 'Location', type: 'text', not_required: true, readOnly: true }
   ];
 
   useEffect(() => {
@@ -119,7 +121,7 @@ export default function SupplierManagement() {
     const selectedState = stateList.find(state => state.name === (name === 'state' ? value : newRowData.state));
     const selectedCity = cityList.find(city => city.name === (name === 'city' ? value : newRowData.city));
 
-    const location = `${selectedCountry ? selectedCountry.name : ''}, ${selectedState ? selectedState.name : ''}, ${selectedCity ? selectedCity.name : ''}`;
+    const location = `${selectedCountry ? selectedCountry.name : ''}${selectedState ? `, ${selectedState.name}` : ''}${selectedCity ? `, ${selectedCity.name}` : ''}`;
     setNewRowData(prevData => ({
       ...prevData,
       location,
@@ -188,7 +190,7 @@ export default function SupplierManagement() {
     const selectedState = stateList.find(state => state.name === (name === 'state' ? value : rowData.state));
     const selectedCity = cityList.find(city => city.name === (name === 'city' ? value : rowData.city));
 
-    const location = `${selectedCountry ? selectedCountry.name : ''}, ${selectedState ? selectedState.name : ''}, ${selectedCity ? selectedCity.name : ''}`;
+    const location = `${selectedCountry ? selectedCountry.name : ''}${selectedState ? `, ${selectedState.name}` : ''}${selectedCity ? `, ${selectedCity.name}` : ''}`;
     setRowData(prevData => ({
       ...prevData,
       location,
@@ -244,13 +246,15 @@ export default function SupplierManagement() {
 
   const actions = [
     <Button
-    label="Edit"
+    label={<IconEdit/>}
     handleFunction={openEdit}
+    actionButton={true}
     />,
 
     <Button
-    label="Delete"
+    label={<IconDelete/>}
     handleFunction={openDelete}
+    actionButton={true}
     />
   ];
 

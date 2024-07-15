@@ -7,6 +7,8 @@ import PopUp from '../Common/CommonComponents/PopUp';
 import EmailForm from '../Common/CommonComponents/EmailForm';
 import Inbox from '../Common/CommonComponents/Inbox';
 import DeletePopUp from '../Common/CommonComponents/DeletePopUp';
+import IconDelete from '../Common/CommonComponents/IconDelete.jsx';
+import IconEdit from '../Common/CommonComponents/IconEdit.jsx';
 
 export default function SupplierAnalytics() {
     const [supplierData, setSupplierData] = useState({});
@@ -40,11 +42,11 @@ export default function SupplierAnalytics() {
 
     const supFields = [
         { id: 'supplier_name', label: 'Supplier Name', type: 'text' },
-        { id: 'location', label: 'Location', type: 'text' },
         { id: 'key_product', label: 'Key Product', type: 'text' },
         { id: 'sustainability_score', label: 'Sustainability Score', type: 'text' },
         { id: 'key_contact', label: 'Key Contact', type: 'text' },
-        { id: 'key_email', label: 'Key Email', type: 'text' }
+        { id: 'key_email', label: 'Key Email', type: 'text' },
+        { id: 'location', label: 'Location', type: 'text' }
     ];
 
     const certFields = [
@@ -351,45 +353,51 @@ export default function SupplierAnalytics() {
 
     const certActions = [
         <Button
-        label="Edit"
+        label={<IconEdit/>}
         handleFunction={openEditCert}
+        actionButton={true}
         />,
 
         <Button
-        label="Delete"
+        label={<IconDelete/>}
         handleFunction={openDelete}
+        actionButton={true}
         />
     ];
 
     const prodActions = [
         <Button
-        label="Edit"
+        label={<IconEdit/>}
         handleFunction={openEditProd}
+        actionButton={true}
         />,
 
         <Button
-        label="Delete"
+        label={<IconDelete/>}
         handleFunction={openDelete}
+        actionButton={true}
         />
     ];
 
     const emailActions = [
         <Button
-        label="Edit"
+        label={<IconEdit/>}
         handleFunction={openEditEmail}
+        actionButton={true}
         />,
 
         <Button
-        label="Delete"
+        label={<IconDelete/>}
         handleFunction={openDelete}
+        actionButton={true}
         />
     ];
 
     return (
         <div className="flex flex-col justify-center overflow-hidden mt-20 p-6">
         <div className="flex justify-center">
-            <div className="w-[90%] margin-[auto] flex flex-row justify-between mb-10">
-                <h1 className="text-3xl">{supplierData.supplier_name}</h1>
+            <div className="w-[90%] margin-[auto] flex flex-row justify-between mb-8">
+                <h1 className="text-3xl font-medium">{supplierData.supplier_name}</h1>
                 <Button
                     label="Request Info"
                     handleFunction={openRequestBtn}
@@ -432,7 +440,7 @@ export default function SupplierAnalytics() {
             fields={supFields}
             tableData={[supplierData]}
         />
-        <h1 className="text-xl text-center m-10">Products</h1>
+        <h1 className="text-xl text-left m-10 ml-16 mb-4">Products</h1>
         <Table
             fields={prodFields}
             tableData={productData}
@@ -471,7 +479,7 @@ export default function SupplierAnalytics() {
             validationErrors={validationErrors}
           />
         )}
-        <h1 className="text-xl text-center m-10">Certificates</h1>
+        <h1 className="text-xl text-left m-10 ml-16 mb-4">Certificates</h1>
         <Table
             fields={certFields}
             tableData={certificateData}

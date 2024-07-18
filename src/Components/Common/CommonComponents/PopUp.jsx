@@ -45,11 +45,17 @@ const PopUp = ({
                   <tbody>
                     {newRowData[field.id] && newRowData[field.id].map((log, index) => (
                       <tr key={index}>
-                        {field.tableFields.map((tableField) => (
+                       {field.tableFields.map((tableField) => (
                           <td key={tableField.id} className="border px-4 py-2">
-                            {log[tableField.id.toLowerCase()]}
-                          </td>
-                        ))}
+                              {tableField.type === 'url' ? (
+                            <a href={log[tableField.id.toLowerCase()]} target="_blank" rel="noopener noreferrer">
+                              View
+                            </a>
+                        ) : (
+                          log[tableField.id.toLowerCase()]
+                        )}
+                      </td>
+                    ))}
                       </tr>
                     ))}
                   </tbody>

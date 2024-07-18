@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useParams } from 'react-router-dom';
+import { generalFunction } from '../../assets/Config/generalFunction';
 import PopUp from '../Common/CommonComponents/PopUp';
 import Button from '../Common/CommonComponents/Button';
+
 
 export default function Parameter() {
     const [collectionData, setCollectionData] = useState([]);
@@ -61,28 +63,98 @@ export default function Parameter() {
         }
     };
 
+    const getSignedUrl = async (evidence_url, evidence_name) => {
+        if (evidence_url) {
+            const signedUrl = await generalFunction.getSignedUrl(evidence_url);
+
+            // test getting URL from S3
+            // Error - The link gets downloaded instead of viewing in browser
+            const S3url = await generalFunction.getURLFromS3(evidence_name)
+
+            return signedUrl.signedUrl
+        } else {
+            return "N/A"
+        }
+
+    }
+
+    const getAIExtractedValue = async (log, row) => {
+        if (log.ai_extracted_value) {
+            return log.ai_extracted_value
+        }
+        if(log.evidence_name) {
+            const ai_value = await generalFunction.getOCRValue(log.evidence_name);
+
+            // update the database with this value
+            const { data, error } = await supabase
+                .from('parameter_log')
+                .update({ai_extracted_value: ai_value})
+                .eq('data_collection_id', row.id);
+
+            if (error) {
+                throw error;
+            }
+
+            return ai_value;
+        }
+        return '';
+    }
+
+
     const handleCellClick = async (row) => {
         setIsPopupOpen(true);
 
         const { data, error } = await supabase
             .from('parameter_log')
-            .select('value, log_date')
+            .select('value, log_date, evidence_url, evidence_name, ai_extracted_value')
             .eq('data_collection_id', row.id);
 
-        if (error) {
+        if (error){
             console.error(error);
-        } else {
-            const processedData = {
-                ...row,
-                parameter_log: data.map(log => ({ value: log.value, log_date: new Date(log.log_date).toLocaleDateString() })),
-            };
-            setParameterData(processedData);
-            setPopupFields([
-                { id: 'name', label: 'Name' },
-                { id: 'method', label: 'Method' },
-                { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [{ id: 'value', label: 'Value' }, { id: 'log_date', label: 'Log Date' }] }
-            ]);
+            return
         }
+
+        const parameterLogs = await Promise.all(data.map(async log => {
+            const signedUrl = await getSignedUrl(log.evidence_url, log.evidence_name);
+            const OCRValue = await getAIExtractedValue(log, row);
+            return {
+                value: log.value,
+                log_date: new Date(log.log_date).toLocaleDateString(),
+                evidence: signedUrl,
+                ai_extracted_value: OCRValue
+            };
+        }));
+
+        const processedData = {
+            ...row,
+            parameter_log: parameterLogs
+        };
+
+        setParameterData(processedData);
+
+        setPopupFields([
+            { id: 'name', label: 'Name' },
+            { id: 'method', label: 'Method' },
+            { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [
+                {
+                    id: 'value',
+                    label: 'Value'
+                },
+                {   id: 'log_date',
+                    label: 'Log Date'
+                },
+                {
+                    id: 'evidence',
+                    label: 'Evidence',
+                    type: 'url'
+                },
+                {
+                    id: 'ai_extracted_value',
+                    label: 'AI Extracted Value'
+                }]
+            }
+        ]);
+
     };
 
     const handleAddDataCollectionPoint = async () => {

@@ -13,6 +13,7 @@
     "@emailjs/browser": "^4.3.3",
     "@questlabs/react-sdk": "1.5.8",
     "@supabase/supabase-js": "^2.42.4",
+    "aws-sdk": "^2.1659.0",
     "axios": "^1.6.2",
     "framer-motion": "^10.17.9",
     "jotai": "^2.6.0",

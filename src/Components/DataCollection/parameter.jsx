@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { generalFunction } from '../../assets/Config/generalFunction';
 import PopUp from '../Common/CommonComponents/PopUp';
 import Button from '../Common/CommonComponents/Button';
-
+import { apiClient } from '../../assets/Config/apiClient';
 
 export default function Parameter() {
     const [collectionData, setCollectionData] = useState([]);
@@ -83,7 +83,7 @@ export default function Parameter() {
             return log.ai_extracted_value
         }
         if(log.evidence_name) {
-            const ai_value = await generalFunction.getOCRValue(log.evidence_name);
+            const ai_value = await apiClient.getOCRValue(log.evidence_name);
 
             // update the database with this value
             const { data, error } = await supabase

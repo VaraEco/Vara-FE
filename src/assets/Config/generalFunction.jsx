@@ -754,22 +754,6 @@ export const generalFunction = {
     getURLFromS3: (file_name) =>{
           return `https://compliance-document-bucket.s3.amazonaws.com/${file_name}`
     },
-
-    getOCRValue: async (evidence_name) => {
-        try {
-            const response = await axios.post('http://localhost:8000/api/document/analyze', {
-                bucketName: 'compliance-document-bucket',
-                documentName: evidence_name,
-            } , {
-                headers: {
-                  'Content-Type': 'application/json'
-            }}
-            );
-            return response.data.Value;
-          } catch (error) {
-                console.error('Error sending message to backend:', error);
-          }
-    },
     
     createUserDataEntry: async (userId, processId, parameterId, datacollectionid, newEntry) => {
     

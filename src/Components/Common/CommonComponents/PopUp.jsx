@@ -1,6 +1,8 @@
 import React from 'react';
 import Button from './Button';
 import IconError from "./IconError";
+import PdfViewer from './PdfViewer';
+import { useState } from 'react';
 
 const PopUp = ({
   title,
@@ -15,6 +17,20 @@ const PopUp = ({
   button2Label = 'Save',
   validationErrors,
 }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState('');
+
+    const handleViewClick = (pdfUrl, e) => {
+        e.preventDefault();
+        setSelectedPdfUrl(pdfUrl);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedPdfUrl('');
+    };
+
   return (
     <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
@@ -48,9 +64,14 @@ const PopUp = ({
                        {field.tableFields.map((tableField) => (
                           <td key={tableField.id} className="border px-4 py-2">
                               {tableField.type === 'url' ? (
-                            <a href={log[tableField.id.toLowerCase()]} target="_blank" rel="noopener noreferrer">
-                              View
-                            </a>
+                                 <a
+                                 href="#"
+                                 onClick={(e) => handleViewClick(log[tableField.id.toLowerCase()], e)}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                             >
+                                 View
+                             </a>
                         ) : (
                           log[tableField.id.toLowerCase()]
                         )}
@@ -104,6 +125,7 @@ const PopUp = ({
           </div>
         </form>
       </div>
+      <PdfViewer pdfUrl={selectedPdfUrl} isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );
 };

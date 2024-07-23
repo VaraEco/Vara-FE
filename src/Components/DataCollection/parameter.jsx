@@ -65,13 +65,11 @@ export default function Parameter() {
 
     const getSignedUrl = async (evidence_url, evidence_name) => {
         if (evidence_url) {
-            const signedUrl = await generalFunction.getSignedUrl(evidence_url);
-
-            // test getting URL from S3
-            // Error - The link gets downloaded instead of viewing in browser
+            // Getting Supabase document
+            //const signedUrl = await generalFunction.getSignedUrl(evidence_url);
+            // Getting document from S3
             const S3url = await generalFunction.getURLFromS3(evidence_name)
-
-            return signedUrl.signedUrl
+            return S3url
         } else {
             return "N/A"
         }

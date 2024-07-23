@@ -345,7 +345,6 @@ export default function SupplierManagement() {
   };
 
   const onImportSubmit = async (data) => {
-    console.log(data);
     const defaultValues = {
       supplier_name: ' ',
       location: ' ',

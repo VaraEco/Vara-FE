@@ -6,7 +6,7 @@ export const apiClient = {
 
     getOCRValue: async (evidence_name) => {
         try {
-            const response = await axios.post('${apiUrl}/document/analyze', {
+            const response = await axios.post(apiUrl, {
                 bucketName: 'compliance-document-bucket',
                 documentName: evidence_name,
             } , {

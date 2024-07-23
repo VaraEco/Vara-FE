@@ -80,7 +80,7 @@ export default function Parameter() {
         if (log.ai_extracted_value) {
             return log.ai_extracted_value
         }
-        if(log.evidence_name) {
+        else if(log.evidence_name) {
             const ai_value = await apiClient.getOCRValue(log.evidence_name);
 
             // update the database with this value
@@ -102,6 +102,9 @@ export default function Parameter() {
     const handleCellClick = async (row) => {
         setIsPopupOpen(true);
 
+        const isLocal = window.location.hostname === 'localhost';
+        const OCR_Feature =  isLocal ? true : false
+
         const { data, error } = await supabase
             .from('parameter_log')
             .select('value, log_date, evidence_url, evidence_name, ai_extracted_value')
@@ -114,7 +117,10 @@ export default function Parameter() {
 
         const parameterLogs = await Promise.all(data.map(async log => {
             const signedUrl = await getSignedUrl(log.evidence_url, log.evidence_name);
-            const OCRValue = await getAIExtractedValue(log, row);
+            let OCRValue = '';
+            if (OCR_Feature) {
+                OCRValue = await getAIExtractedValue(log, row);
+            }
             return {
                 value: log.value,
                 log_date: new Date(log.log_date).toLocaleDateString(),
@@ -130,7 +136,7 @@ export default function Parameter() {
 
         setParameterData(processedData);
 
-        setPopupFields([
+        const baseFields = [
             { id: 'name', label: 'Name' },
             { id: 'method', label: 'Method' },
             { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [
@@ -145,14 +151,17 @@ export default function Parameter() {
                     id: 'evidence',
                     label: 'Evidence',
                     type: 'url'
-                },
-                {
-                    id: 'ai_extracted_value',
-                    label: 'AI Extracted Value'
-                }]
-            }
-        ]);
+                }
+            ]}
+        ];
 
+        if(OCR_Feature) {
+            baseFields[2].tableFields.push({
+                id: 'ai_extracted_value',
+                label: 'AI Extracted Value'
+            });
+        }
+        setPopupFields(baseFields);
     };
 
     const handleAddDataCollectionPoint = async () => {

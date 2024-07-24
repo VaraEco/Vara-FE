@@ -8,6 +8,7 @@ import ErrorPopUp from '../Common/CommonComponents/ErrorPopUp.jsx';
 import IconDelete from '../Common/CommonComponents/IconDelete.jsx';
 import IconEdit from '../Common/CommonComponents/IconEdit.jsx';
 import { GetCountries, GetState, GetCity } from "react-country-state-city";
+import { ReactSpreadsheetImport } from "react-spreadsheet-import";
 
 export default function SupplierManagement() {
   const errorMessage = "We apologize, but this supplier cannot be deleted at this time. There are associated products, certificates, and/or emails linked to this supplier that must be addressed first. Please remove or reassign these associated items before attempting to delete the supplier again.";
@@ -26,6 +27,8 @@ export default function SupplierManagement() {
   const [cityList, setCityList] = useState([]);
   const [countryId, setCountryId] = useState(0);
   const [stateId, setStateId] = useState(0);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [importedRowData, setImportedRowData] = useState({});
 
   const fields = [
     { id: 'supplier_name', label: 'Supplier Name', type: 'text', link: true },
@@ -44,6 +47,79 @@ export default function SupplierManagement() {
     { id: 'state', label: 'State', type: 'select', not_required: true, no_show: true, options: stateList.map(state => ({ key: state.id, value: state.name, label: state.name })) },
     { id: 'city', label: 'City', type: 'select', not_required: true, no_show: true, options: cityList.map(city => ({ key: city.id, value: city.name, label: city.name })) },
     { id: 'location', label: 'Location', type: 'text', not_required: true, readOnly: true }
+  ];
+
+  const importFields = [
+    {
+      label: "Supplier Name",
+      key: "supplier_name",
+      fieldType: {
+        type: "input",
+      },
+      validations: [
+        {
+          rule: "required",
+          errorMessage: "Supplier Name is required",
+          level: "error",
+        },
+      ],
+    },
+    {
+      label: "Key Product",
+      key: "key_product",
+      fieldType: {
+        type: "input",
+      },
+      validations: [
+        {
+          rule: "required",
+          errorMessage: "Key Product is required.",
+          level: "error",
+        },
+      ],
+    },
+    {
+      label: "Sustainability Score",
+      key: "sustainability_score",
+      fieldType: {
+        type: "input",
+      },
+      validations: [
+        {
+          rule: "required",
+          errorMessage: "Sustainability score is required.",
+          level: "error",
+        },
+      ],
+    },
+    {
+      label: "Key Contact",
+      key: "key_contact",
+      fieldType: {
+        type: "input",
+      },
+      validations: [
+        {
+          rule: "required",
+          errorMessage: "Key Contact is required.",
+          level: "error",
+        },
+      ],
+    },
+    {
+      label: "Key Email",
+      key: "key_email",
+      fieldType: {
+        type: "input",
+      },
+      validations: [
+        {
+          rule: "required",
+          errorMessage: "Key Email is required.",
+          level: "error",
+        },
+      ],
+    },
   ];
 
   useEffect(() => {
@@ -242,7 +318,56 @@ export default function SupplierManagement() {
 
   const closeError = () => {
     setIsErrorOpen(false);
-  }
+  };
+
+  const handleOpenImport = () => {
+    setIsImportOpen(true);
+  };
+
+  const onImportClose = () => {
+    setIsImportOpen(false);
+  };
+
+  const handleAddImport = async (rowData) => {
+    const errors = generalFunction.validateData(rowData, fields);
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+    try {
+      const id = await generalFunction.createSupplier(rowData);
+      const newRowWithId = { ...rowData, id };
+      setTableData((prevData) => [...prevData, newRowWithId]);
+      handleClosePopup();
+    } catch (error) {
+      console.error('Error adding row:', error);
+    }
+  };
+
+  const onImportSubmit = async (data) => {
+    const defaultValues = {
+      supplier_name: ' ',
+      location: ' ',
+      key_product: ' ',
+      sustainability_score: ' ',
+      key_contact: ' ',
+      key_email: ' ',
+      country: ' ',
+      state: ' ',
+      city: ' '
+    };
+  
+    const rows = data.validData;
+    for (let obj of rows) {
+      try {
+        let filledObject = { ...defaultValues, ...obj };
+        await handleAddImport(filledObject); 
+      } catch (error) {
+        console.error('Error importing rows:', error);
+      }
+    }
+    setIsImportOpen(false);
+  };  
 
   const actions = [
     <Button
@@ -271,6 +396,9 @@ export default function SupplierManagement() {
         rowsPerPage={5}
         enablePagination={tableData.length > 5}
         searchableColumn="supplier_name"
+        importButton={true}
+        handleOpenImport={handleOpenImport}
+        importType="Supplier"
       />
       <div className="mb-6 mt-10 flex items-center justify-center">
         <Button
@@ -313,6 +441,12 @@ export default function SupplierManagement() {
             errorMessage={errorMessage}
           />
         )}
+        <ReactSpreadsheetImport
+          isOpen={isImportOpen}
+          onClose={onImportClose}
+          onSubmit={onImportSubmit}
+          fields={importFields}
+        />
     </div>
   );
 }

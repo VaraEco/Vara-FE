@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Modal from 'react-modal';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
@@ -34,7 +34,7 @@ const PdfViewer = ({ pdfUrl, isOpen, onClose }) => {
         >
         <button onClick={onClose} style={{ marginBottom: '10px' }}>Close</button>
         <div style={{ height: '90%' }}>
-            <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js`}>
+            <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
                 <div
                     style={{
                         height: '750px',

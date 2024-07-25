@@ -37,6 +37,19 @@ export default function Login() {
                 "questUserCredentials",
                 JSON.stringify(userCredentials)
             );
+
+            const isLocal = window.location.hostname === 'localhost';
+            if (!isLocal){
+                try {
+                    const jwtToken = await generalFunction.generateAndSetJWT(localStorage.getItem("varaUserId"));
+                    // You can use jwtToken here if needed
+                  } 
+                catch (error) {
+                    // Handle error
+                    console.error('Error in JWT generation:', error);
+                  }
+            }
+            
             
             if (refQuery) {
                 let request = generalFunction.createUrl(`api/v2/entities/${mainConfig.QUEST_ENTITY_ID}/campaigns/${appConfig.QUEST_REFERRAL_CAMPAIGN_ID}/claim`);

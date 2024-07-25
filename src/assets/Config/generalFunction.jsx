@@ -1,6 +1,6 @@
 import Cookies from "universal-cookie";
 import { mainConfig } from "./appConfig";
-import { supabase } from "../../supabaseClient";
+import { supabase, updateSupabaseClient } from '../../supabaseClient';
 import axios from "axios";
 
 export const generalFunction = {
@@ -34,6 +34,7 @@ export const generalFunction = {
         cookies.remove("questUserId");
         cookies.remove("questUserToken");
         cookies.remove("questUserCredentials");
+        cookies.remove("auth-token", { path: '/' });
         localStorage.removeItem("questUserId");
         localStorage.removeItem("questUserToken");
         localStorage.removeItem("questUserCredentials");
@@ -41,6 +42,8 @@ export const generalFunction = {
         localStorage.removeItem("varaCompanyId");
         localStorage.removeItem("varaUserId");
         localStorage.removeItem("messages");
+
+        updateSupabaseClient(null);
     },
 
     createUrl: (apiString) => {
@@ -884,4 +887,33 @@ export const generalFunction = {
             return null;
         }
     },
+    generateAndSetJWT: async (userId) => {
+        try {
+            const { data, error } = await supabase.functions.invoke('jwt_generating_function', {
+              body: { userId },
+            });
+        
+            if (error) {
+              throw error;
+            }
+        
+            if (!data || !data.token) {
+              throw new Error('JWT token not received');
+            }
+        
+            const jwtToken = data.token;
+        
+            // Store the JWT token in a cookie
+            const cookies = new Cookies();
+            cookies.set('auth-token', jwtToken, { path: '/', secure: true, sameSite: 'strict' });
+        
+            // Update Supabase client with the new JWT
+            updateSupabaseClient(jwtToken);
+        
+            return jwtToken;
+          } catch (error) {
+            console.error('Error generating JWT:', error);
+            throw error;
+          }
+    }
 }

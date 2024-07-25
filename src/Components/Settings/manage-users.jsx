@@ -169,6 +169,12 @@ export default function ManageUsers() {
                 status: user.status,
                 access_till: user.access_till
             });
+
+            const isLocal = window.location.hostname === 'localhost';
+            if (!isLocal) {
+                const jwtToken = await generalFunction.generateAndSetJWT(localStorage.getItem("varaUserId"));
+            }
+
             setButtonColor(prevState => ({ ...prevState, [user.id]: 'success' }));
             setTimeout(() => setButtonColor(prevState => ({ ...prevState, [user.id]: '' })), 2000);
             fetchUsers();

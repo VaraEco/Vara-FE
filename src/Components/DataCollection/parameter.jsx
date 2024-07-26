@@ -76,7 +76,7 @@ export default function Parameter() {
 
     }
 
-    const getAIExtractedValue = async (log, row) => {
+    const getAIExtractedValue = async (log) => {
         if (log.ai_extracted_value) {
             return log.ai_extracted_value
         }
@@ -87,7 +87,7 @@ export default function Parameter() {
             const { data, error } = await supabase
                 .from('parameter_log')
                 .update({ai_extracted_value: ai_value})
-                .eq('data_collection_id', row.id);
+                .eq('log_id', log.log_id);
 
             if (error) {
                 throw error;
@@ -107,7 +107,7 @@ export default function Parameter() {
 
         const { data, error } = await supabase
             .from('parameter_log')
-            .select('value, log_date, evidence_url, evidence_name, ai_extracted_value')
+            .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value')
             .eq('data_collection_id', row.id);
 
         if (error){
@@ -119,7 +119,7 @@ export default function Parameter() {
             const signedUrl = await getSignedUrl(log.evidence_url, log.evidence_name);
             let OCRValue = '';
             if (OCR_Feature) {
-                OCRValue = await getAIExtractedValue(log, row);
+                OCRValue = await getAIExtractedValue(log);
             }
             return {
                 value: log.value,

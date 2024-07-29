@@ -4,14 +4,18 @@ import Cookies from 'js-cookie';  // Import js-cookie
 
 const isLocal = window.location.hostname === 'localhost';
 
+let supabaseUrl, supabaseKey;
+
 if (isLocal) {
     console.log('Running locally');
+    supabaseUrl = mainConfig.REACT_APP_SUPABASE_URL_DEV;
+    supabaseKey = mainConfig.REACT_APP_SUPABASE_ANON_KEY;
 } else {
     console.log('Running on the cloud');
+    supabaseUrl = mainConfig.REACT_APP_SUPABASE_URL_PROD;
+    supabaseKey = mainConfig.REACT_APP_SUPABASE_ANON_KEY_PROD;
 }
 
-const supabaseUrl = mainConfig.REACT_APP_SUPABASE_URL;
-const supabaseKey = mainConfig.REACT_APP_SUPABASE_ANON_KEY;
 
 // Function to create a Supabase client with the current JWT
 export const createSupabaseClient = (jwt) => {

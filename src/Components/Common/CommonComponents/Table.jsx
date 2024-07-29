@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import IconSearch from "./IconSearch";
+import Button from "./Button";
 
-const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions = false, actions = [], rowsPerPage = 10, enablePagination = false, searchableColumn }) => {
+const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions = false, actions = [], rowsPerPage = 10, enablePagination = false, searchableColumn, importButton = false, handleOpenImport, importType = '' }) => {
   fields = fields.filter(field => !field.no_show);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,8 +37,8 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
 
   return (
     <div className="flex flex-col items-center text-sm bg-white">
-      <div className="w-[90%] margin-[auto]"> {/* Background wrapper */}
-      <div className="w-[90%] margin-[auto] mb-4 flex justify-between items-center">
+      <div className="w-[90%] margin-[auto]"> 
+      <div className="w-[100%] margin-[auto] mb-4 flex items-center">
         {searchableColumn && (
           <div className="relative w-1/4">
             <span className="absolute inset-y-0 left-0 flex items-center pl-2">
@@ -49,6 +50,14 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
               onChange={handleSearchChange}
               placeholder={`Search by ${fields.find(field => field.id === searchableColumn)?.label}...`}
               className="px-8 py-1 border rounded-md shadow text-sm w-full placeholder:text-gray-500"
+            />
+          </div>
+        )}
+        {importButton && (
+          <div className="relative w-[100%] flex justify-end">
+            <Button
+            label={`Import ${importType}`}
+            handleFunction={handleOpenImport}
             />
           </div>
         )}
@@ -118,7 +127,7 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
             </button>
           </div>
         )}
-      </div> {/* End of background wrapper */}
+      </div> 
     </div>
   );
 };

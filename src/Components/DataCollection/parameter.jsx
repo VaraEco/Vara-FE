@@ -66,10 +66,10 @@ export default function Parameter() {
     const getSignedUrl = async (evidence_url, evidence_name) => {
         if (evidence_url) {
             // Getting Supabase document
-            //const signedUrl = await generalFunction.getSignedUrl(evidence_url);
+            const signedUrl = await generalFunction.getSignedUrl(evidence_url);
             // Getting document from S3
-            const S3url = await generalFunction.getURLFromS3(evidence_name)
-            return S3url
+            //const S3url = await generalFunction.getURLFromS3(evidence_name)
+            return signedUrl.signedUrl
         } else {
             return "N/A"
         }
@@ -103,7 +103,8 @@ export default function Parameter() {
         setIsPopupOpen(true);
 
         const isLocal = window.location.hostname === 'localhost';
-        const OCR_Feature =  isLocal ? true : false
+        //const OCR_Feature =  isLocal ? true : false
+        const OCR_Feature = false
 
         const { data, error } = await supabase
             .from('parameter_log')

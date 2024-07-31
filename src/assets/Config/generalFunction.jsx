@@ -2,7 +2,7 @@ import Cookies from "universal-cookie";
 import { mainConfig } from "./appConfig";
 import { supabase, updateSupabaseClient } from '../../supabaseClient';
 import axios from "axios";
-import { s3 } from "./s3Config";
+// import { uploadToS3 } from "./s3Config";
 
 export const generalFunction = {
     getUserId: () => {
@@ -768,19 +768,19 @@ export const generalFunction = {
 
         const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`
         // Upload to S3 here instead
-        const params = {
-            Bucket: "compliance-document-bucket",
-            Key: file_name,
-            Body: newEntry.evidenceFile,
-          };
-          try {
-            const upload = await s3.putObject(params).promise();
-            console.log(upload);
-            alert("File uploaded successfully.");
-          } catch (error) {
-            console.error(error);
-            alert("Error uploading file: " + error.message); // Inform user about the error
-          }
+        // const params = {
+        //     Bucket: "compliance-document-bucket",
+        //     Key: file_name,
+        //     Body: newEntry.evidenceFile,
+        //   };
+        //   try {
+        //     const upload = await uploadToS3(newEntry.evidenceFile, "compliance-document-bucket", file_name).promise();
+        //     console.log(upload);
+        //     alert("File uploaded successfully.");
+        //   } catch (error) {
+        //     console.error(error);
+        //     alert("Error uploading file: " + error.message); // Inform user about the error
+        //   }
 
         // Step 3: Insert into parameter_log with retrieved data_collection_id and evidence URL
         const { data, error } = await supabase

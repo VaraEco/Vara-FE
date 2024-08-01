@@ -2,6 +2,7 @@ import Cookies from "universal-cookie";
 import { mainConfig } from "./appConfig";
 import { supabase, updateSupabaseClient } from '../../supabaseClient';
 import axios from "axios";
+// import { uploadToS3 } from "./s3Config";
 
 export const generalFunction = {
     getUserId: () => {
@@ -752,6 +753,10 @@ export const generalFunction = {
         
         return data;
     },
+
+    getURLFromS3: (file_name) =>{
+          return `https://compliance-document-bucket.s3.amazonaws.com/${file_name}`
+    },
     
     createUserDataEntry: async (userId, processId, parameterId, datacollectionid, newEntry) => {
     
@@ -760,7 +765,23 @@ export const generalFunction = {
         if (newEntry.evidenceFile) {
             evidenceUrl = await generalFunction.uploadFile(newEntry.evidenceFile);
         }
-    
+
+        const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`
+        // Upload to S3 here instead
+        // const params = {
+        //     Bucket: "compliance-document-bucket",
+        //     Key: file_name,
+        //     Body: newEntry.evidenceFile,
+        //   };
+        //   try {
+        //     const upload = await uploadToS3(newEntry.evidenceFile, "compliance-document-bucket", file_name).promise();
+        //     console.log(upload);
+        //     alert("File uploaded successfully.");
+        //   } catch (error) {
+        //     console.error(error);
+        //     alert("Error uploading file: " + error.message); // Inform user about the error
+        //   }
+
         // Step 3: Insert into parameter_log with retrieved data_collection_id and evidence URL
         const { data, error } = await supabase
             .from('parameter_log')
@@ -771,7 +792,8 @@ export const generalFunction = {
                     value: newEntry.value,
                     log_date: newEntry.date,
                     data_collection_id: datacollectionid,
-                    evidence_url: evidenceUrl // Save the public URL returned from the uploadFile function
+                    evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
+                    evidence_name: file_name
                 }
             ]);
     

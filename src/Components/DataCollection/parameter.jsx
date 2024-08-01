@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useParams } from 'react-router-dom';
+import { generalFunction } from '../../assets/Config/generalFunction';
 import PopUp from '../Common/CommonComponents/PopUp';
 import Button from '../Common/CommonComponents/Button';
+import { apiClient } from '../../assets/Config/apiClient';
 
 export default function Parameter() {
     const [collectionData, setCollectionData] = useState([]);
@@ -61,28 +63,106 @@ export default function Parameter() {
         }
     };
 
+    const getSignedUrl = async (evidence_url, evidence_name) => {
+        if (evidence_url) {
+            // Getting Supabase document
+            const signedUrl = await generalFunction.getSignedUrl(evidence_url);
+            // Getting document from S3
+            //const S3url = await generalFunction.getURLFromS3(evidence_name)
+            return signedUrl.signedUrl
+        } else {
+            return "N/A"
+        }
+
+    }
+
+    const getAIExtractedValue = async (log) => {
+        if (log.ai_extracted_value) {
+            return log.ai_extracted_value
+        }
+        else if(log.evidence_name) {
+            const ai_value = await apiClient.getOCRValue(log.evidence_name);
+
+            // update the database with this value
+            const { data, error } = await supabase
+                .from('parameter_log')
+                .update({ai_extracted_value: ai_value})
+                .eq('log_id', log.log_id);
+
+            if (error) {
+                throw error;
+            }
+
+            return ai_value;
+        }
+        return '';
+    }
+
+
     const handleCellClick = async (row) => {
         setIsPopupOpen(true);
 
+        const isLocal = window.location.hostname === 'localhost';
+        //const OCR_Feature =  isLocal ? true : false
+        const OCR_Feature = false
+
         const { data, error } = await supabase
             .from('parameter_log')
-            .select('value, log_date')
+            .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value')
             .eq('data_collection_id', row.id);
 
-        if (error) {
+        if (error){
             console.error(error);
-        } else {
-            const processedData = {
-                ...row,
-                parameter_log: data.map(log => ({ value: log.value, log_date: new Date(log.log_date).toLocaleDateString() })),
-            };
-            setParameterData(processedData);
-            setPopupFields([
-                { id: 'name', label: 'Name' },
-                { id: 'method', label: 'Method' },
-                { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [{ id: 'value', label: 'Value' }, { id: 'log_date', label: 'Log Date' }] }
-            ]);
+            return
         }
+
+        const parameterLogs = await Promise.all(data.map(async log => {
+            const signedUrl = await getSignedUrl(log.evidence_url, log.evidence_name);
+            let OCRValue = '';
+            if (OCR_Feature) {
+                OCRValue = await getAIExtractedValue(log);
+            }
+            return {
+                value: log.value,
+                log_date: new Date(log.log_date).toLocaleDateString(),
+                evidence: signedUrl,
+                ai_extracted_value: OCRValue
+            };
+        }));
+
+        const processedData = {
+            ...row,
+            parameter_log: parameterLogs
+        };
+
+        setParameterData(processedData);
+
+        const baseFields = [
+            { id: 'name', label: 'Name' },
+            { id: 'method', label: 'Method' },
+            { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [
+                {
+                    id: 'value',
+                    label: 'Value'
+                },
+                {   id: 'log_date',
+                    label: 'Log Date'
+                },
+                {
+                    id: 'evidence',
+                    label: 'Evidence',
+                    type: 'url'
+                }
+            ]}
+        ];
+
+        if(OCR_Feature) {
+            baseFields[2].tableFields.push({
+                id: 'ai_extracted_value',
+                label: 'AI Extracted Value'
+            });
+        }
+        setPopupFields(baseFields);
     };
 
     const handleAddDataCollectionPoint = async () => {

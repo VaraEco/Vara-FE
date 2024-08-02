@@ -10,6 +10,7 @@ import { generalFunction } from "../../assets/Config/generalFunction";
 import { userPermissions } from "../../assets/Config/accessControl";
 
 export default function Login() {
+    generalFunction.logout();
     const navigate = useNavigate();
     const { appConfig, theme, bgColors, contentConfig } =
         useContext(ThemeContext);

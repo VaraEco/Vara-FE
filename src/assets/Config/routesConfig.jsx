@@ -29,6 +29,8 @@ import SupplierAnalytics from "../../Components/DataCollection/supplierAnalytics
 import Parameter from "../../Components/DataCollection/parameter";
 import DataEntry from "../../Components/DataCollection/dataentry";
 import DataEntryDetails from '../../Components/DataCollection/dataentrydetails';
+import DataAnalytics from "../../Components/DataCollection/dataanalytics";
+
 export const routesConfig = [
     {
         path: "/login",
@@ -198,8 +200,7 @@ export const routesConfig = [
         hidden: false,
         isUpper: true,
     },
-    /* have to make routes for each supplier */
-        {
+    {
         path: "/suppliermanagement/:supplier_name",
         name: "Supplier Analytics",
         logo: InsightsSvg(),
@@ -249,6 +250,20 @@ export const routesConfig = [
             <ProviderConfig showTag={false}>
                 <DashboardWrapper selectdRoute={"certification"}>
                     <Certification></Certification>
+                </DashboardWrapper>
+            </ProviderConfig>
+        ),
+        hidden: false,
+        isUpper: true,
+    },
+    {
+        path: "/dataanalytics",
+        name: "Data Analytics",
+        logo: IconPaper_folded(),
+        component: (
+            <ProviderConfig showTag={false}>
+                <DashboardWrapper selectdRoute={"dataanalytics"}>
+                    <DataAnalytics></DataAnalytics>
                 </DashboardWrapper>
             </ProviderConfig>
         ),

@@ -10,7 +10,7 @@ export default function DataEntryDetails() {
     const { access } = location.state;
     const [userDataEntry, setUserDataEntry] = useState([]);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [newEntry, setNewEntry] = useState({ date: '', value: '', evidenceFile: null, evidence_url: ''});
+    const [newEntry, setNewEntry] = useState({ log_date: '', value: '', evidenceFile: null, evidence_url: ''});
 
     useEffect(() => {
         fetchDataEntry();
@@ -57,7 +57,6 @@ export default function DataEntryDetails() {
 
     };
 
-    // Need to replace hard coded userId with actual userId from Local Storage
     const handleSaveNewEntry = async () => {
         try {
             const userId = access.userId;  
@@ -80,6 +79,16 @@ export default function DataEntryDetails() {
         { id: 'evidence', label: 'Evidence' },
         { id: 'status', label: 'Status' }
     ];
+
+    const formatDateDisplay = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // getUTCMonth() returns month index starting from 0
+        const day = date.getUTCDate().toString().padStart(2, '0');
+        const year = date.getUTCFullYear();
+        return `${month}/${day}/${year}`;
+        // return new Date(dateString).toLocaleDateString();
+      };
 
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
@@ -105,7 +114,7 @@ export default function DataEntryDetails() {
                         fields={tableFields}
                         tableData={userDataEntry.map(entry => ({
                             value: entry.value,
-                            log_date: new Date(entry.log_date).toLocaleDateString(),
+                            log_date: formatDateDisplay(entry.log_date),
                             evidence: entry.signedUrl ? <a href={entry.signedUrl.signedUrl} target="_blank" rel="noopener noreferrer">View</a> : '',
                             status: 'Approved' 
                         }))}
@@ -131,7 +140,7 @@ export default function DataEntryDetails() {
                 <PopUp
                     title="New Data Entry"
                     fields={[
-                        { id: 'date', label: 'Date', type: 'date' },
+                        { id: 'log_date', label: 'Log Date', type: 'date' },
                         { id: 'value', label: 'Value', type: 'text' },
                         { id: 'evidenceFile', label: 'Evidence', type: 'file' },
                     ]}

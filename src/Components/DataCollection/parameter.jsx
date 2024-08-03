@@ -5,6 +5,7 @@ import { generalFunction } from '../../assets/Config/generalFunction';
 import PopUp from '../Common/CommonComponents/PopUp';
 import Button from '../Common/CommonComponents/Button';
 import { apiClient } from '../../assets/Config/apiClient';
+import { useNavigate } from 'react-router-dom';
 
 export default function Parameter() {
     const [collectionData, setCollectionData] = useState([]);
@@ -16,6 +17,7 @@ export default function Parameter() {
     const [newDataCollectionPoint, setNewDataCollectionPoint] = useState({ name: '', method: '' });
     const [facilityName, setFacilityName] = useState('');
     const [processName, setProcessName] = useState('');
+    const navigate = useNavigate();
 
     const tableFields = [
         { id: 'name', label: 'Point Name' },
@@ -100,69 +102,74 @@ export default function Parameter() {
 
 
     const handleCellClick = async (row) => {
-        setIsPopupOpen(true);
+        navigate(`${row.id}`);
 
-        const isLocal = window.location.hostname === 'localhost';
-        //const OCR_Feature =  isLocal ? true : false
-        const OCR_Feature = false
+        // setIsPopupOpen(true);
+        // console.log(row)
+        // const isLocal = window.location.hostname === 'localhost';
+        // //const OCR_Feature =  isLocal ? true : false
+        // const OCR_Feature = false
+        // console.log(row.id)
+        // const data = await generalFunction.fetchParameterDataSourceData(row.id)
+        // console.log(data)
+        // const { data, error } = await supabase
+        //     .from('parameter_log')
+        //     .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value')
+        //     .eq('data_collection_id', row.id);
 
-        const { data, error } = await supabase
-            .from('parameter_log')
-            .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value')
-            .eq('data_collection_id', row.id);
+        // console.log(data)
+        // if (error){
+        //     console.error(error);
+        //     return
+        // }
 
-        if (error){
-            console.error(error);
-            return
-        }
+        // const parameterLogs = await Promise.all(data.map(async log => {
+        //     const signedUrl = await getSignedUrl(log.evidence_url, log.evidence_name);
+        //     let OCRValue = '';
+        //     if (OCR_Feature) {
+        //         OCRValue = await getAIExtractedValue(log);
+        //     }
+        //     return {
+        //         value: log.value,
+        //         log_date: new Date(log.log_date).toLocaleDateString(),
+        //         evidence: signedUrl,
+        //         ai_extracted_value: OCRValue
+        //     };
+        // }));
 
-        const parameterLogs = await Promise.all(data.map(async log => {
-            const signedUrl = await getSignedUrl(log.evidence_url, log.evidence_name);
-            let OCRValue = '';
-            if (OCR_Feature) {
-                OCRValue = await getAIExtractedValue(log);
-            }
-            return {
-                value: log.value,
-                log_date: new Date(log.log_date).toLocaleDateString(),
-                evidence: signedUrl,
-                ai_extracted_value: OCRValue
-            };
-        }));
+        // const processedData = {
+        //     ...row,
+        //     parameter_log: parameterLogs
+        // };
 
-        const processedData = {
-            ...row,
-            parameter_log: parameterLogs
-        };
+        // setParameterData(processedData);
 
-        setParameterData(processedData);
+        // const baseFields = [
+        //     { id: 'name', label: 'Name' },
+        //     { id: 'method', label: 'Method' },
+        //     { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [
+        //         {
+        //             id: 'value',
+        //             label: 'Value'
+        //         },
+        //         {   id: 'log_date',
+        //             label: 'Log Date'
+        //         },
+        //         {
+        //             id: 'evidence',
+        //             label: 'Evidence',
+        //             type: 'url'
+        //         }
+        //     ]}
+        // ];
 
-        const baseFields = [
-            { id: 'name', label: 'Name' },
-            { id: 'method', label: 'Method' },
-            { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [
-                {
-                    id: 'value',
-                    label: 'Value'
-                },
-                {   id: 'log_date',
-                    label: 'Log Date'
-                },
-                {
-                    id: 'evidence',
-                    label: 'Evidence',
-                    type: 'url'
-                }
-            ]}
-        ];
-
-        if(OCR_Feature) {
-            baseFields[2].tableFields.push({
-                id: 'ai_extracted_value',
-                label: 'AI Extracted Value'
-            });
-        }
-        setPopupFields(baseFields);
+        // if(OCR_Feature) {
+        //     baseFields[2].tableFields.push({
+        //         id: 'ai_extracted_value',
+        //         label: 'AI Extracted Value'
+        //     });
+        // }
+        // setPopupFields(baseFields);
     };
 
     const handleAddDataCollectionPoint = async () => {

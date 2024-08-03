@@ -20,16 +20,26 @@ const PopUp = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState('');
 
-    const handleViewClick = (pdfUrl, e) => {
-        e.preventDefault();
-        setSelectedPdfUrl(pdfUrl);
-        setIsModalOpen(true);
-    };
+  const handleViewClick = (pdfUrl, e) => {
+      e.preventDefault();
+      setSelectedPdfUrl(pdfUrl);
+      setIsModalOpen(true);
+  };
 
-    const closeModal = () => {
-        setIsModalOpen(false);
-        setSelectedPdfUrl('');
-    };
+  const closeModal = () => {
+      setIsModalOpen(false);
+      setSelectedPdfUrl('');
+  };
+
+  const formatDateForInput = (dateString) => {
+    if (dateString.includes('/')) {
+      const [month, day, year] = dateString.split('/');
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    } else if (dateString.includes('-')) {
+      return dateString;
+    }
+    //return new Date(dateString).toLocaleDateString();
+  };
 
   return (
     <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
@@ -105,14 +115,14 @@ const PopUp = ({
                 />
               ) : (
                 <input
-                  type={field.type || 'text'}
-                  id={field.id}
-                  name={field.id}
-                  value={newRowData[field.id] || field.default || ''}
-                  onChange={field.readOnly ? null : handleInputChange}
-                  className={`border border-gray-300 rounded-md shadow-sm mt-1 block w-full ${field.readOnly ? 'bg-gray-100 cursor-not-allowed focus:outline-none disabled' : ''}`}
-                  readOnly={readOnly}
-                />
+                type={field.type === 'date' ? 'date' : field.type || 'text'}
+                id={field.id}
+                name={field.id}
+                value={field.type === 'date' ? formatDateForInput(newRowData[field.id]) : newRowData[field.id] || field.default || ''}
+                onChange={field.readOnly ? null : handleInputChange}
+                className={`border border-gray-300 rounded-md shadow-sm mt-1 block w-full ${field.readOnly ? 'bg-gray-100 cursor-not-allowed focus:outline-none disabled' : ''}`}
+                readOnly={readOnly}
+              />
               )}
             </div>
           ))}

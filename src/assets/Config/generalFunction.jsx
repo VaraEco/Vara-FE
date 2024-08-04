@@ -658,6 +658,30 @@ export const generalFunction = {
         }
     },
 
+    editDataPoint: async (rowData) => {
+        let evidenceUrl = '';
+        let file_name = '';
+        if (rowData.evidenceFile) {
+            evidenceUrl = await generalFunction.uploadFile(rowData.evidenceFile);
+            file_name = `${Date.now()}_${rowData.evidenceFile.name}`;
+        }
+        const {data, error} = await supabase
+            .from('parameter_log')
+            .update({
+                value: rowData.value,
+                log_date: rowData.log_date,
+                evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
+                evidence_name: file_name
+            })
+            .eq('log_id', rowData.log_id);
+
+        if (error) {
+            throw error;
+        }
+
+        return evidenceUrl
+    },
+
     createSupplierEmail: async (receiver, sender, date_sent, supplierData) => {
         const { data, error } = await supabase
             .from('supplier_emails')
@@ -735,6 +759,19 @@ export const generalFunction = {
         return data;
     },
 
+    fetchParameterDataSourceData: async (id) =>{
+        const { data, error } = await supabase
+        .from('parameter_log')
+        .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value')
+        .eq('data_collection_id', id);
+
+        if (error){
+            console.error(error);
+            return
+        }
+        return data
+    },
+
     fetchUserDataEntry: async (userId, processId, parameterId, datacollectionid) => {
         const { data, error } = await supabase
             .from('parameter_log')
@@ -759,14 +796,14 @@ export const generalFunction = {
     },
     
     createUserDataEntry: async (userId, processId, parameterId, datacollectionid, newEntry) => {
-    
         // Step 2: Upload evidence file if it exists
         let evidenceUrl = '';
+        let file_name = '';
         if (newEntry.evidenceFile) {
             evidenceUrl = await generalFunction.uploadFile(newEntry.evidenceFile);
+            file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
         }
 
-        const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`
         // Upload to S3 here instead
         // const params = {
         //     Bucket: "compliance-document-bucket",
@@ -790,12 +827,13 @@ export const generalFunction = {
                     process_id: processId,
                     para_id: parameterId,
                     value: newEntry.value,
-                    log_date: newEntry.date,
+                    log_date: newEntry.log_date,
                     data_collection_id: datacollectionid,
                     evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
                     evidence_name: file_name
                 }
-            ]);
+            ])
+            .select('log_id');
     
         if (error) {
             throw error;

@@ -30,6 +30,7 @@ import Parameter from "../../Components/DataCollection/parameter";
 import DataEntry from "../../Components/DataCollection/dataentry";
 import DataEntryDetails from '../../Components/DataCollection/dataentrydetails';
 import Chatbot from "../../Components/Compliance/chatbot";
+import DataPoint from "../../Components/DataCollection/datapoint";
 export const routesConfig = [
     {
         path: "/login",
@@ -137,6 +138,20 @@ export const routesConfig = [
             <ProviderConfig showTag={false}>
                 <DashboardWrapper selectdRoute={"parameter"}>
                     <Parameter></Parameter>
+                </DashboardWrapper>
+            </ProviderConfig>
+        ),
+        hidden: true,
+        isUpper: true,
+    },
+    {
+        path: "/data_collection/:parameter/:process/:data_point",
+        name: "data_source",
+        logo: InsightsSvg(),
+        component: (
+            <ProviderConfig showTag={false}>
+                <DashboardWrapper selectdRoute={"parameter"}>
+                    <DataPoint></DataPoint>
                 </DashboardWrapper>
             </ProviderConfig>
         ),

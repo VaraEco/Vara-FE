@@ -4,7 +4,9 @@ import react from "@vitejs/plugin-react";
 const EnvKeys = [
     "REACT_APP_AWS_ACCESS_KEY_ID",
     "REACT_APP_AWS_SECRET_ACCESS_KEY",
-    "REACT_APP_API_URL"
+    "REACT_APP_BACKEND_S3_API",
+    "REACT_APP_BACKEND_TEXTRACT_API",
+    "REACT_APP_BACKEND_CHATBOT_API"
   ];
 
 // https://vitejs.dev/config/
@@ -23,6 +25,6 @@ export default defineConfig(({ mode }) => {
       },
       build: {
         chunkSizeWarningLimit: 1600
+    },
     }
-    }
-  })
+})

@@ -108,7 +108,7 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
                   {fields.map((field) => (
                     <td key={field.id} className={`px-2 py-4 ${isLastRow ? '' : 'border-b'} ${clickable ? 'hover:text-[#0475E6]' : ''}`}>
                       {field.type === 'date' ? ( formatDate(row[field.id]))
-                      : field.type === 'url' ? (
+                      : field.type === 'url' && row[field.id] ? (
                         <a
                           href="#"
                           onClick={(e) => handleViewClick(row[field.id], e)}

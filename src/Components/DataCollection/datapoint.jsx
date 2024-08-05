@@ -8,11 +8,13 @@ import  Button from '../Common/CommonComponents/Button'
 import PopUp from '../Common/CommonComponents/PopUp';
 import DeletePopUp from '../Common/CommonComponents/DeletePopUp';
 import { ReactSpreadsheetImport } from "react-spreadsheet-import";
+import { apiClient } from '../../assets/Config/apiClient';
 
 export default function DataPoint() {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [newEntry, setNewEntry] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: ''});
+    const [newEntry, setNewEntry] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', ai_extracted_value: ''});
     const [AllValues, setAllValues] = useState([]);
+
 
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [deleteRowData, setDeleteRowData] = useState({});
@@ -20,7 +22,7 @@ export default function DataPoint() {
     const [isImportOpen, setIsImportOpen] = useState(false);
     
     const [isEditOpen, setEditOpen] = useState(false);
-    const [rowEditData, setEditRowData] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', evidence: ''});
+    const [rowEditData, setEditRowData] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', evidence: '',  ai_extracted_value: ''});
     const [rowEditIndex, setEditRowIndex] = useState(-1);
 
     const { parameter, process, data_point } = useParams();
@@ -29,6 +31,16 @@ export default function DataPoint() {
         { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_date', label: 'Log Date', type: 'date' },
         { id: 'evidence', label: 'Evidence', type: 'url' }]
+
+    const [OCR_Feature, setOCR_Feature] = useState(true);  // Set the OCR feature state
+    const [tableFields, setTableFields] = useState(fields);
+
+    const ai_fields = [
+        { id: 'value', label: 'Value', type: 'text' },
+        { id: 'log_date', label: 'Log Date', type: 'date' },
+        { id: 'evidence', label: 'Evidence', type: 'url' },
+        { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text'}
+    ]
 
     const importFields = [
         { label: "Value", key: "value", fieldType: { type: "input" }},
@@ -47,6 +59,7 @@ export default function DataPoint() {
                             value: log.value,
                             log_date: formatDateDisplay(log.log_date),
                             evidence: signedUrl,
+                            ai_extracted_value: log.ai_extracted_value
                         };
                         }));
                         setAllValues(processedData);
@@ -60,15 +73,20 @@ export default function DataPoint() {
         getData();
     }, [])
 
+    useEffect(() => {
+        if (OCR_Feature) {
+            setTableFields(ai_fields);
+        } else {
+            setTableFields(fields);
+        }
+    }, [OCR_Feature]);
+
     const formatDateDisplay = (dateString) => {        
         if (!dateString) return '';
-    
         const date = new Date(dateString);
-      
         const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // getUTCMonth() returns month index starting from 0
         const day = date.getUTCDate().toString().padStart(2, '0');
         const year = date.getUTCFullYear();
-      
         return `${month}/${day}/${year}`;
         // return new Date(dateString).toLocaleDateString();
       };
@@ -100,8 +118,19 @@ export default function DataPoint() {
 
     };
 
+    const aiExtractedFlow = async () => {
+        if(newEntry.evidenceFile) {
+            const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
+            const ai_value = await apiClient.uploadToS3(newEntry.evidenceFile, file_name )
+            newEntry.ai_extracted_value = ai_value
+        }
+    }
+
     const handleSaveNewEntry = async () => {
         try {
+            if (OCR_Feature) {
+                await aiExtractedFlow();
+            }
             const log_id = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
             const newRowWithId = { ...newEntry, log_id}
             setAllValues((prevData) => [...prevData, newRowWithId])
@@ -114,7 +143,7 @@ export default function DataPoint() {
     const handleOpenImport = () => {
         setIsImportOpen(true);
       };
-    
+
       const onImportClose = () => {
         setIsImportOpen(false);
       };
@@ -184,7 +213,6 @@ export default function DataPoint() {
             ...prevData,
             evidenceFile: file,
         }));
-
     };
 
     async function handleEditSubmit() {
@@ -209,7 +237,7 @@ export default function DataPoint() {
 
       const handleCloseEdit = () => {
         setEditOpen(false);
-        setEditRowData({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', evidence: ''})
+        setEditRowData({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', evidence: '', ai_extracted_value: ''})
         setEditRowIndex(-1)
       };
     
@@ -223,7 +251,7 @@ export default function DataPoint() {
         setDeleteRowData({}); 
         setIsDeleteOpen(false);
       };
-    
+
     const handleDelete = async () => {
         const log_id = deleteRowData.log_id;
         try {
@@ -235,7 +263,6 @@ export default function DataPoint() {
         }
         closeDelete();
     };
-    
 
     const actions = [
         <Button
@@ -256,7 +283,7 @@ export default function DataPoint() {
             <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-4xl">
                 <h1 className="text-2xl text-center mb-4">Data Source </h1>
                 <Table
-                  fields={fields}
+                  fields={tableFields}
                   tableData ={AllValues}
                   hasActions={true}
                   actions={actions}
@@ -302,6 +329,7 @@ export default function DataPoint() {
                     { id: 'log_date', label: 'Date', type: 'date' },
                     { id: 'value', label: 'Value', type: 'text' },
                     { id: 'evidenceFile', label: 'Evidence', type: 'file' },
+                    { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text' },
                 ]}
                 newRowData={rowEditData}
                 handleInputChange={handleEditInput}

@@ -11,10 +11,6 @@ export const apiClient = {
             formData.append('fileName', file_name)
             formData.append('file', file);
 
-            console.log('S3_api:', S3_api);
-            console.log('file:', file);
-            console.log('file_name:', file_name);
-
             try {
                 const response = await axios.post(
                     S3_api,

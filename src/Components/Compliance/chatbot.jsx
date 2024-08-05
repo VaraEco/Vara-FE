@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './chatbot.css';
 
+const ChatBot_api = process.env.REACT_APP_BACKEND_CHATBOT_API;
+//https://vara.ploomberapp.io/api/chatbot/message/query
+
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -23,9 +26,9 @@ const Chatbot = () => {
       setMessages(updatedMessages);
 
       try {
-        const response = await axios.post('https://summer-river-7171.ploomberapp.io/api/chatbot/message/query', {
-        message: input,
-        userId: userId
+        const response = await axios.post( ChatBot_api, {
+          message: input,
+          userId: userId
         });
         const botMessage = { sender: 'bot', text: response.data.response };
         setMessages([...updatedMessages, botMessage]);

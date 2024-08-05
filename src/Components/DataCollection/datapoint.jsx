@@ -219,7 +219,7 @@ export default function DataPoint() {
         const unsigned_evidence_url = await generalFunction.editDataPoint(rowEditData);
         if (unsigned_evidence_url) {
             const evidence_url = await getSignedUrl(unsigned_evidence_url);
-            const editedRowWithURL = { ...rowEditData, evidence_url}   
+            const editedRowWithURL = { ...rowEditData, evidence: evidence_url}
             setAllValues((prevData) => {
                 const newData = [...prevData];
                 newData[rowEditIndex] = { ...editedRowWithURL };

@@ -110,8 +110,8 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
                       {field.type === 'date' ? ( formatDate(row[field.id]))
                       : field.type === 'url' && row[field.id] ? (
                         <a
-                          href="#"
-                          onClick={(e) => handleViewClick(row[field.id], e)}
+                          href={row[field.id]}
+                          // onClick={(e) => handleViewClick(row[field.id], e)}
                           target="_blank"
                           rel="noopener noreferrer"
                         >

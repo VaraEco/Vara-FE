@@ -671,7 +671,8 @@ export const generalFunction = {
                 value: rowData.value,
                 log_date: rowData.log_date,
                 evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
-                evidence_name: file_name
+                evidence_name: file_name,
+                ai_extracted_value: rowData.ai_extracted_value
             })
             .eq('log_id', rowData.log_id);
 
@@ -830,7 +831,8 @@ export const generalFunction = {
                     log_date: newEntry.log_date,
                     data_collection_id: datacollectionid,
                     evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
-                    evidence_name: file_name
+                    evidence_name: file_name,
+                    ai_extracted_value: newEntry.ai_extracted_value
                 }
             ])
             .select('log_id');

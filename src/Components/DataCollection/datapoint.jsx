@@ -62,7 +62,9 @@ export default function DataPoint() {
                             ai_extracted_value: log.ai_extracted_value
                         };
                         }));
-                        setAllValues(processedData);
+                        // added sorting logic here
+                        const sortedData = processedData.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+                        setAllValues(sortedData);
                     };
                     processLogs(data);
                 }
@@ -133,7 +135,9 @@ export default function DataPoint() {
             }
             const log_id = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
             const newRowWithId = { ...newEntry, log_id}
-            setAllValues((prevData) => [...prevData, newRowWithId])
+            // added sorting logic here
+            // setAllValues((prevData) => [...prevData, newRowWithId])
+            setAllValues(prevData => [newRowWithId, ...prevData]);
             setIsPopupOpen(false);
         } catch (error) {
             console.log("Error saving new entry: ", error);
@@ -166,7 +170,9 @@ export default function DataPoint() {
                 evidence_url: ''
             };
             await generalFunction.createUserDataEntry('', process, parameter, data_point, imported_entry);
-            setAllValues((prevData) => [...prevData, imported_entry])
+            // added sorting logic here
+            //setAllValues((prevData) => [...prevData, imported_entry])
+            setAllValues(prevData => [imported_entry, ...prevData]);
           handleClosePopup();
         } catch (error) {
           console.error('Error adding row:', error);

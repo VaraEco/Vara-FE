@@ -799,10 +799,10 @@ export const generalFunction = {
     
     createUserDataEntry: async (userId, processId, parameterId, datacollectionid, newEntry) => {
         // Step 2: Upload evidence file if it exists
-        let evidenceUrl = '';
+        let evidence_url = '';
         let file_name = '';
         if (newEntry.evidenceFile) {
-            evidenceUrl = await generalFunction.uploadFile(newEntry.evidenceFile);
+            evidence_url = await generalFunction.uploadFile(newEntry.evidenceFile);
             file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
         }
 
@@ -822,7 +822,7 @@ export const generalFunction = {
         //   }
 
         // Step 3: Insert into parameter_log with retrieved data_collection_id and evidence URL
-        const { data, error } = await supabase
+        const { data: id, error } = await supabase
             .from('parameter_log')
             .insert([
                 {
@@ -831,18 +831,20 @@ export const generalFunction = {
                     value: newEntry.value,
                     log_date: newEntry.log_date,
                     data_collection_id: datacollectionid,
-                    evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
+                    evidence_url: evidence_url, // Save the public URL returned from the uploadFile function
                     evidence_name: file_name,
                     ai_extracted_value: newEntry.ai_extracted_value,
                     log_unit: newEntry.log_unit
                 }
             ])
+            .single()
             .select('log_id');
     
         if (error) {
             throw error;
         }
-        return data;
+        const log_id = id.log_id
+        return { log_id, evidence_url };
     },
 
     uploadFile: async (file) =>{

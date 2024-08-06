@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Table from '../Common/CommonComponents/Table';
+import { supabase } from '../../supabaseClient';
 import { generalFunction } from '../../assets/Config/generalFunction';
 import { useParams } from 'react-router-dom';
 import IconDelete from '../Common/CommonComponents/IconDelete.jsx';
@@ -31,7 +32,7 @@ export default function DataPoint() {
         { id: 'log_date', label: 'Log Date', type: 'date' },
         { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_unit', label: 'Unit', type: 'text'},
-        { id: 'evidence', label: 'Evidence', type: 'url' }]
+        { id: 'evidence_url', label: 'Evidence', type: 'url' }]
 
     const [OCR_Feature, setOCR_Feature] = useState(true);  // Set the OCR feature state
     const [tableFields, setTableFields] = useState(fields);
@@ -40,7 +41,7 @@ export default function DataPoint() {
         { id: 'log_date', label: 'Log Date', type: 'date' },
         { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_unit', label: 'Unit', type: 'text'},
-        { id: 'evidence', label: 'Evidence', type: 'url' },
+        { id: 'evidence_url', label: 'Evidence', type: 'url' },
         { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text'}
     ]
 
@@ -61,7 +62,7 @@ export default function DataPoint() {
                             value: log.value,
                             log_date: formatDateDisplay(log.log_date),
                             log_unit: log.log_unit,
-                            evidence: signedUrl,
+                            evidence_url: signedUrl,
                             ai_extracted_value: log.ai_extracted_value
                         };
                         }));
@@ -123,24 +124,43 @@ export default function DataPoint() {
 
     };
 
-    const aiExtractedFlow = async () => {
-        if(newEntry.evidenceFile) {
-            const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
-            const ai_value = await apiClient.uploadToS3(newEntry.evidenceFile, file_name )
-            newEntry.ai_extracted_value = ai_value
+    const aiExtractedFlow = async (log_id) => {
+        const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
+        const ai_value = await apiClient.uploadToS3(newEntry.evidenceFile, file_name )
+        newEntry.ai_extracted_value = ai_value
+
+        // Update the DB
+        const {data, error} = await supabase
+        .from('parameter_log')
+        .update({
+            ai_extracted_value: ai_value,
+        })
+        .eq('log_id', log_id);
+
+        if (error) {
+            throw error;
         }
+
+        // Update the state
+        setAllValues((prevData) =>
+            prevData.map((item) =>
+                item.log_id === log_id
+                    ? { ...item, ai_extracted_value: ai_value }
+                    : item
+            )
+        );
     }
 
     const handleSaveNewEntry = async () => {
         try {
-            if (OCR_Feature) {
-                await aiExtractedFlow();
-            }
-            const log_id = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
-            const newRowWithId = { ...newEntry, log_id}
+            const { log_id, evidence_url}  = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
+            const newRowWithId = { ...newEntry, log_id, evidence_url}
             // added sorting logic here
             // setAllValues((prevData) => [...prevData, newRowWithId])
             setAllValues(prevData => [newRowWithId, ...prevData]);
+            if (OCR_Feature && newEntry.evidenceFile) {
+                aiExtractedFlow(log_id);
+            }
             setIsPopupOpen(false);
         } catch (error) {
             console.log("Error saving new entry: ", error);
@@ -186,7 +206,7 @@ export default function DataPoint() {
         const defaultValues = {
             value: '',
             log_date: '',
-            evidence: '',
+            evidence_url: '',
         };
         const rows = data.validData;
         for (let obj of rows) {

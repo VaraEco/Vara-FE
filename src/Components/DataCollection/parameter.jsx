@@ -17,6 +17,8 @@ export default function Parameter() {
     const [newDataCollectionPoint, setNewDataCollectionPoint] = useState({ name: '', method: '' });
     const [facilityName, setFacilityName] = useState('');
     const [processName, setProcessName] = useState('');
+    const [parameterName, setParameterName] = useState('');
+    const [parameterUnit, setParameterUnit] = useState('');
     const navigate = useNavigate();
 
     const tableFields = [
@@ -47,6 +49,20 @@ export default function Parameter() {
             const mappingId = mappingData.id;
             setFacilityName(mappingData.process.facility.facility_name);
             setProcessName(mappingData.process.process_name);
+
+            // Get Parameter Name from Paramter Id
+            const parameterId = parseInt(parameter, 10);
+            const { data: parameter_name, error: parameter_error } = await supabase
+                .from('parameter')
+                .select('*')
+                .eq('para_id', parameterId);
+
+            if (parameter_error) {
+                console.error('Error fetching parameter:', parameter_error);
+            }
+
+            setParameterName(parameter_name[0].para_name)
+            setParameterUnit(parameter_name[0].para_metric)
 
             // Get data collection points
             const { data: collectionPoints, error: collectionError } = await supabase
@@ -225,12 +241,32 @@ export default function Parameter() {
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
             <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-4xl">
-                <h1 className="text-2xl text-center mb-4">Parameter Data</h1>
-                <h2 className="text-2xl text-left mb-4">Facility: {facilityName}</h2>
-                <h2 className="text-2xl text-left mb-4">Process: {processName}</h2>
+                <h1 className="text-xl text-center mb-4">Parameter Data</h1>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
+                        <div className=" p-4 rounded-lg">
+                                <h2 className="text-l font-semibold text-gray-700">Parameter</h2>
+                                <p className="text-lg text-gray-500">{parameterName}</p>
+                        </div>
+                        <div className=" p-4 rounded-lg">
+                                <h2 className="text-l font-semibold text-gray-700">Unit</h2>
+                                <p className="text-lg text-gray-500">{parameterUnit}</p>
+                        </div>
+                        <div className=" p-4 rounded-lg">
+                            <h2 className="text-l font-semibold text-gray-700">Facility</h2>
+                            <p className="text-lg text-gray-500">{facilityName}</p>
+                        </div>
+                        <div className=" p-4 rounded-lg">
+                            <h2 className="text-l font-semibold text-gray-700">Process</h2>
+                            <p className="text-lg text-gray-500">{processName}</p>
+                        </div>
+                    </div>
+            </div>
+
                 <div className="container mx-auto">
                     <div className="mt-4">
-                        <h2 className="text-xl">Data Collection Points</h2>
+                        <h2 className="text-l text-center">Data Collection Points</h2>
                         <table className="min-w-full bg-white">
                             <thead>
                                 <tr>

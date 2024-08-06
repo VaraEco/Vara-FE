@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Table from '../Common/CommonComponents/Table';
+import { supabase } from '../../supabaseClient';
 import { generalFunction } from '../../assets/Config/generalFunction';
 import { useParams } from 'react-router-dom';
 import IconDelete from '../Common/CommonComponents/IconDelete.jsx';
@@ -12,7 +13,7 @@ import { apiClient } from '../../assets/Config/apiClient';
 
 export default function DataPoint() {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [newEntry, setNewEntry] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', ai_extracted_value: ''});
+    const [newEntry, setNewEntry] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', ai_extracted_value: '', log_unit: ''});
     const [AllValues, setAllValues] = useState([]);
 
 
@@ -22,23 +23,25 @@ export default function DataPoint() {
     const [isImportOpen, setIsImportOpen] = useState(false);
     
     const [isEditOpen, setEditOpen] = useState(false);
-    const [rowEditData, setEditRowData] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', evidence: '',  ai_extracted_value: ''});
+    const [rowEditData, setEditRowData] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', evidence: '',  ai_extracted_value: '', log_unit: ''});
     const [rowEditIndex, setEditRowIndex] = useState(-1);
 
     const { parameter, process, data_point } = useParams();
     
     const fields = [
-        { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_date', label: 'Log Date', type: 'date' },
-        { id: 'evidence', label: 'Evidence', type: 'url' }]
+        { id: 'value', label: 'Value', type: 'text' },
+        { id: 'log_unit', label: 'Unit', type: 'text'},
+        { id: 'evidence_url', label: 'Evidence', type: 'url' }]
 
     const [OCR_Feature, setOCR_Feature] = useState(true);  // Set the OCR feature state
     const [tableFields, setTableFields] = useState(fields);
 
     const ai_fields = [
-        { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_date', label: 'Log Date', type: 'date' },
-        { id: 'evidence', label: 'Evidence', type: 'url' },
+        { id: 'value', label: 'Value', type: 'text' },
+        { id: 'log_unit', label: 'Unit', type: 'text'},
+        { id: 'evidence_url', label: 'Evidence', type: 'url' },
         { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text'}
     ]
 
@@ -58,11 +61,14 @@ export default function DataPoint() {
                             log_id: log.log_id,
                             value: log.value,
                             log_date: formatDateDisplay(log.log_date),
-                            evidence: signedUrl,
+                            log_unit: log.log_unit,
+                            evidence_url: signedUrl,
                             ai_extracted_value: log.ai_extracted_value
                         };
                         }));
-                        setAllValues(processedData);
+                        // added sorting logic here
+                        const sortedData = processedData.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+                        setAllValues(sortedData);
                     };
                     processLogs(data);
                 }
@@ -118,22 +124,47 @@ export default function DataPoint() {
 
     };
 
-    const aiExtractedFlow = async () => {
-        if(newEntry.evidenceFile) {
-            const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
-            const ai_value = await apiClient.uploadToS3(newEntry.evidenceFile, file_name )
-            newEntry.ai_extracted_value = ai_value
+    const aiExtractedFlow = async (log_id) => {
+        const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
+        const ai_value = await apiClient.uploadToS3(newEntry.evidenceFile, file_name )
+        newEntry.ai_extracted_value = ai_value
+
+        // Update the DB
+        const {data, error} = await supabase
+            .from('parameter_log')
+            .update({
+                ai_extracted_value: ai_value,
+            })
+            .eq('log_id', log_id);
+
+        if (error) {
+            throw error;
         }
+
+        // Update the state
+        setAllValues((prevData) =>
+            prevData.map((item) =>
+                item.log_id === log_id
+                    ? { ...item, ai_extracted_value: ai_value }
+                    : item
+            )
+        );
     }
 
     const handleSaveNewEntry = async () => {
         try {
-            if (OCR_Feature) {
-                await aiExtractedFlow();
-            }
-            const log_id = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
+            const { log_id, evidenceUrl}  = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
+            const evidence_url = evidenceUrl ? await getSignedUrl(evidenceUrl) : null;
             const newRowWithId = { ...newEntry, log_id}
-            setAllValues((prevData) => [...prevData, newRowWithId])
+            if (evidence_url) {
+                newRowWithId.evidence_url = evidence_url;
+            }
+            // added sorting logic here
+            // setAllValues((prevData) => [...prevData, newRowWithId])
+            setAllValues(prevData => [newRowWithId, ...prevData]);
+            if (OCR_Feature && newEntry.evidenceFile) {
+                aiExtractedFlow(log_id);
+            }
             setIsPopupOpen(false);
         } catch (error) {
             console.log("Error saving new entry: ", error);
@@ -166,7 +197,9 @@ export default function DataPoint() {
                 evidence_url: ''
             };
             await generalFunction.createUserDataEntry('', process, parameter, data_point, imported_entry);
-            setAllValues((prevData) => [...prevData, imported_entry])
+            // added sorting logic here
+            //setAllValues((prevData) => [...prevData, imported_entry])
+            setAllValues(prevData => [imported_entry, ...prevData]);
           handleClosePopup();
         } catch (error) {
           console.error('Error adding row:', error);
@@ -177,7 +210,7 @@ export default function DataPoint() {
         const defaultValues = {
             value: '',
             log_date: '',
-            evidence: '',
+            evidence_url: '',
         };
         const rows = data.validData;
         for (let obj of rows) {
@@ -219,7 +252,7 @@ export default function DataPoint() {
         const unsigned_evidence_url = await generalFunction.editDataPoint(rowEditData);
         if (unsigned_evidence_url) {
             const evidence_url = await getSignedUrl(unsigned_evidence_url);
-            const editedRowWithURL = { ...rowEditData, evidence_url}   
+            const editedRowWithURL = { ...rowEditData, evidence: evidence_url}
             setAllValues((prevData) => {
                 const newData = [...prevData];
                 newData[rowEditIndex] = { ...editedRowWithURL };
@@ -256,6 +289,7 @@ export default function DataPoint() {
         const log_id = deleteRowData.log_id;
         try {
             await generalFunction.deleteRecord({ table: 'parameter_log', match: { log_id } });
+            //await generalFunction.deleteFile('1722976068828_Sample_Utility_Bill.pdf')
             setAllValues((prevData) => prevData.filter(deleteRowData => deleteRowData.log_id !== log_id));
         } catch (error) {
             console.error('Error deleting supplier:', error);
@@ -304,6 +338,7 @@ export default function DataPoint() {
                     fields={[
                         { id: 'log_date', label: 'Log Date', type: 'date' },
                         { id: 'value', label: 'Value', type: 'text' },
+                        { id: 'log_unit', label: 'Unit', type: 'text'},
                         { id: 'evidenceFile', label: 'Evidence', type: 'file' },
                     ]}
                     newRowData={newEntry}
@@ -328,6 +363,7 @@ export default function DataPoint() {
                 fields={[
                     { id: 'log_date', label: 'Date', type: 'date' },
                     { id: 'value', label: 'Value', type: 'text' },
+                    { id: 'log_unit', label: 'Unit', type: 'text'},
                     { id: 'evidenceFile', label: 'Evidence', type: 'file' },
                     { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text' },
                 ]}

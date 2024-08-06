@@ -10,7 +10,7 @@ export default function DataEntryDetails() {
     const { access } = location.state;
     const [userDataEntry, setUserDataEntry] = useState([]);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [newEntry, setNewEntry] = useState({ log_date: '', value: '', evidenceFile: null, evidence_url: ''});
+    const [newEntry, setNewEntry] = useState({ log_date: '', value: '', evidenceFile: null, evidence_url: '', log_unit: ''});
 
     useEffect(() => {
         fetchDataEntry();
@@ -34,7 +34,8 @@ export default function DataEntryDetails() {
                 return entry;
             }));
 
-            setUserDataEntry(entriesWithSignedUrls);
+            const sortedData = entriesWithSignedUrls.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+            setUserDataEntry(sortedData);
         } catch (error) {
             console.log("Error fetching data: ", error);
         }
@@ -74,8 +75,9 @@ export default function DataEntryDetails() {
     };
 
     const tableFields = [
-        { id: 'value', label: 'Value' },
         { id: 'log_date', label: 'Log Date' },
+        { id: 'value', label: 'Value' },
+        { id: 'log_unit', label: 'Unit'},
         { id: 'evidence', label: 'Evidence' },
         { id: 'status', label: 'Status' }
     ];
@@ -115,6 +117,7 @@ export default function DataEntryDetails() {
                         tableData={userDataEntry.map(entry => ({
                             value: entry.value,
                             log_date: formatDateDisplay(entry.log_date),
+                            log_unit: entry.log_unit,
                             evidence: entry.signedUrl ? <a href={entry.signedUrl.signedUrl} target="_blank" rel="noopener noreferrer">View</a> : '',
                             status: 'Approved' 
                         }))}
@@ -142,6 +145,7 @@ export default function DataEntryDetails() {
                     fields={[
                         { id: 'log_date', label: 'Log Date', type: 'date' },
                         { id: 'value', label: 'Value', type: 'text' },
+                        { id: 'log_unit', label: 'Unit', type: 'text' },
                         { id: 'evidenceFile', label: 'Evidence', type: 'file' },
                     ]}
                     newRowData={newEntry}

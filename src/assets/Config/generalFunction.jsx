@@ -672,7 +672,8 @@ export const generalFunction = {
                 log_date: rowData.log_date,
                 evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
                 evidence_name: file_name,
-                ai_extracted_value: rowData.ai_extracted_value
+                ai_extracted_value: rowData.ai_extracted_value,
+                log_unit: rowData.log_unit
             })
             .eq('log_id', rowData.log_id);
 
@@ -763,7 +764,7 @@ export const generalFunction = {
     fetchParameterDataSourceData: async (id) =>{
         const { data, error } = await supabase
         .from('parameter_log')
-        .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value')
+        .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value, log_unit')
         .eq('data_collection_id', id);
 
         if (error){
@@ -821,7 +822,7 @@ export const generalFunction = {
         //   }
 
         // Step 3: Insert into parameter_log with retrieved data_collection_id and evidence URL
-        const { data, error } = await supabase
+        const { data: id, error } = await supabase
             .from('parameter_log')
             .insert([
                 {
@@ -832,15 +833,18 @@ export const generalFunction = {
                     data_collection_id: datacollectionid,
                     evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
                     evidence_name: file_name,
-                    ai_extracted_value: newEntry.ai_extracted_value
+                    ai_extracted_value: newEntry.ai_extracted_value,
+                    log_unit: newEntry.log_unit
                 }
             ])
+            .single()
             .select('log_id');
     
         if (error) {
             throw error;
         }
-        return data;
+        const log_id = id.log_id
+        return { log_id, evidenceUrl };
     },
 
     uploadFile: async (file) =>{
@@ -852,7 +856,15 @@ export const generalFunction = {
         .upload(`test/${fileName}`, file);
 
         return data.path;
+    },
 
+    deleteFile: async (fileName) =>{
+        const { data } = await supabase
+            .storage
+            .from('Evidence')
+            .remove([`test/${fileName}`]);
+
+        console.log(data)
     },
 
     getSignedUrl: async (path) => {
@@ -864,7 +876,6 @@ export const generalFunction = {
         if (error) {
             throw error;
         }
-
         return data;
     },
 

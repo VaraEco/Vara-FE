@@ -331,7 +331,7 @@ export default function Parameteroverview() {
                 <div className="container mx-auto">
                 {hasPermission ? (
                     <>
-                    <h1 className="text-2xl text-center mb-4">Sustainability Metrics</h1>
+                    <h1 className="text-xl text-center mb-4 p-2">Data Collection</h1>
                     {renderTable()}
                     <button onClick={handleOpenParameterPopup} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                         Add Parameter

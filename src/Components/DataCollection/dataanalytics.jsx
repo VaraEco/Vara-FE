@@ -7,6 +7,8 @@ import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orien
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
+import FilePondPluginFileRename from 'filepond-plugin-file-rename';
+registerPlugin(FilePondPluginFileRename);
 
 import { generalFunction } from '../../assets/Config/generalFunction';
 import Button from '../Common/CommonComponents/Button';
@@ -19,13 +21,17 @@ import IconEdit from '../Common/CommonComponents/IconEdit.jsx';
 import IconUpload from '../Common/CommonComponents/IconUpload.jsx';
 import IconMessage from '../Common/CommonComponents/IconMessage.jsx';
 import IconChart from '../Common/CommonComponents/IconChart.jsx';
+import ChatBot from '../Common/CommonComponents/ChatBot.jsx';
 
 export default function DataAnalytics() {
 
     const [files, setFiles] = useState([]);
+    const [uploaded, setUploaded] = useState(false);
 
     return (
-        <div className="flex flex-col justify-center overflow-hidden mt-20 p-6">
+        <div className="flex flex-col justify-center overflow-hidden p-6 h-screen">
+            {!uploaded && (
+            <div>
             <h1 className="text-xl text-center mb-20">Talk to your data instantly</h1>
             <div className="m-auto w-full flex justify-center">
                 <div className="w-1/2">
@@ -35,6 +41,17 @@ export default function DataAnalytics() {
                         onupdatefiles={setFiles}
                         labelIdle='Drop CSV here or <span class="filepond--label-action">browse</span>'
                         server="http://localhost:8000/api/data/analyze"
+                        onprocessfile={async (error, file) => {
+                            const chatId = await generalFunction.getChatId();
+                            file.setMetadata("chatId", chatId);
+                            console.log("file name:", file.filename);
+                            console.log("chat id:", file.getMetadata("chatId"));
+                            setUploaded(true);
+                        }}
+                        fileRenameFunction={async (file) => {
+                            const chatId = await generalFunction.getChatId();
+                            return `${chatId}_${file.name}`;
+                        }}
                         className="w-full"
                     />
                 </div>
@@ -57,6 +74,11 @@ export default function DataAnalytics() {
                     <p className="mb-4 text-gray-400">Make bar charts, scatter plots, pie charts, histograms, and line charts in seconds.</p>
                 </div>
             </div>
+            </div>
+            )}
+            {uploaded && (
+                <ChatBot/>
+            )}
         </div>
     );
 }

@@ -2,6 +2,7 @@ import Cookies from "universal-cookie";
 import { mainConfig } from "./appConfig";
 import { supabase } from "../../supabaseClient";
 import axios from "axios";
+import { v4 as uuidv4 } from 'uuid';
 
 export const generalFunction = {
     getUserId: () => {
@@ -849,5 +850,14 @@ export const generalFunction = {
           console.error('Error performing delete operation:', error);
           throw error;
         }
-    }
+    },
+
+    getChatId: async () => {
+        let chat_id = localStorage.getItem("chatId");
+        if (!chat_id) {
+            localStorage.setItem('chatId', uuidv4());
+            chat_id = localStorage.getItem("chatId");
+        }
+        return chat_id;
+    },
 }

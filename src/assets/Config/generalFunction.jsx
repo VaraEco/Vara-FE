@@ -799,10 +799,10 @@ export const generalFunction = {
     
     createUserDataEntry: async (userId, processId, parameterId, datacollectionid, newEntry) => {
         // Step 2: Upload evidence file if it exists
-        let evidence_url = '';
+        let evidenceUrl = '';
         let file_name = '';
         if (newEntry.evidenceFile) {
-            evidence_url = await generalFunction.uploadFile(newEntry.evidenceFile);
+            evidenceUrl = await generalFunction.uploadFile(newEntry.evidenceFile);
             file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
         }
 
@@ -831,7 +831,7 @@ export const generalFunction = {
                     value: newEntry.value,
                     log_date: newEntry.log_date,
                     data_collection_id: datacollectionid,
-                    evidence_url: evidence_url, // Save the public URL returned from the uploadFile function
+                    evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
                     evidence_name: file_name,
                     ai_extracted_value: newEntry.ai_extracted_value,
                     log_unit: newEntry.log_unit
@@ -844,6 +844,7 @@ export const generalFunction = {
             throw error;
         }
         const log_id = id.log_id
+        const evidence_url = await getSignedUrl(evidenceUrl);
         return { log_id, evidence_url };
     },
 
@@ -854,6 +855,8 @@ export const generalFunction = {
         .storage
         .from('Evidence')  
         .upload(`test/${fileName}`, file);
+
+        console.log(data.path)
 
         return data.path;
 
@@ -868,6 +871,7 @@ export const generalFunction = {
         if (error) {
             throw error;
         }
+        console.log(data)
 
         return data;
     },

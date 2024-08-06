@@ -289,6 +289,7 @@ export default function DataPoint() {
         const log_id = deleteRowData.log_id;
         try {
             await generalFunction.deleteRecord({ table: 'parameter_log', match: { log_id } });
+            //await generalFunction.deleteFile('1722976068828_Sample_Utility_Bill.pdf')
             setAllValues((prevData) => prevData.filter(deleteRowData => deleteRowData.log_id !== log_id));
         } catch (error) {
             console.error('Error deleting supplier:', error);

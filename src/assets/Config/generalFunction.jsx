@@ -855,10 +855,16 @@ export const generalFunction = {
         .from('Evidence')  
         .upload(`test/${fileName}`, file);
 
-        console.log(data.path)
-
         return data.path;
+    },
 
+    deleteFile: async (fileName) =>{
+        const { data } = await supabase
+            .storage
+            .from('Evidence')
+            .remove([`test/${fileName}`]);
+
+        console.log(data)
     },
 
     getSignedUrl: async (path) => {

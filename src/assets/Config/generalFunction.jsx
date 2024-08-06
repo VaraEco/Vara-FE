@@ -3,6 +3,7 @@ import { mainConfig } from "./appConfig";
 import { supabase } from "../../supabaseClient";
 import axios from "axios";
 import { v4 as uuidv4 } from 'uuid';
+// import { uploadToS3 } from "./s3Config";
 
 export const generalFunction = {
     getUserId: () => {
@@ -860,4 +861,55 @@ export const generalFunction = {
         }
         return chat_id;
     },
+
+    updateRole: async (userId, role = 'NO_ROLE', status = true, accessTill = null) => {
+        try {
+            const { data, error } = await supabase
+                .from('user_permissions')
+                .update({
+                    role: role,
+                    status: status,
+                    access_till: accessTill
+                })
+                .eq('user_id', userId);
+            
+            if (error) {
+                throw error;
+            }
+            return data;
+        } catch (error) {
+            console.error("Error updating user permissions:", error);
+            return null;
+        }
+    },
+    
+    generateAndSetJWT: async (userId) => {
+        try {
+            const { data, error } = await supabase.functions.invoke('jwt_generating_function', {
+              body: { userId },
+            });
+        
+            if (error) {
+              throw error;
+            }
+        
+            if (!data || !data.token) {
+              throw new Error('JWT token not received');
+            }
+        
+            const jwtToken = data.token;
+        
+            // Store the JWT token in a cookie
+            const cookies = new Cookies();
+            cookies.set('auth-token', jwtToken, { path: '/', secure: true, sameSite: 'strict' });
+        
+            // Update Supabase client with the new JWT
+            updateSupabaseClient(jwtToken);
+        
+            return jwtToken;
+          } catch (error) {
+            console.error('Error generating JWT:', error);
+            throw error;
+          }
+    }
 }

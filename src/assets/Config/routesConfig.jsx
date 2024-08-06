@@ -30,6 +30,8 @@ import Parameter from "../../Components/DataCollection/parameter";
 import DataEntry from "../../Components/DataCollection/dataentry";
 import DataEntryDetails from '../../Components/DataCollection/dataentrydetails';
 import DataAnalytics from "../../Components/DataCollection/dataanalytics";
+import Chatbot from "../../Components/Compliance/chatbot";
+import DataPoint from "../../Components/DataCollection/datapoint";
 
 export const routesConfig = [
     {

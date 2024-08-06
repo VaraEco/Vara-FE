@@ -12,7 +12,7 @@ import { apiClient } from '../../assets/Config/apiClient';
 
 export default function DataPoint() {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [newEntry, setNewEntry] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', ai_extracted_value: ''});
+    const [newEntry, setNewEntry] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', ai_extracted_value: '', log_unit: ''});
     const [AllValues, setAllValues] = useState([]);
 
 
@@ -22,22 +22,24 @@ export default function DataPoint() {
     const [isImportOpen, setIsImportOpen] = useState(false);
     
     const [isEditOpen, setEditOpen] = useState(false);
-    const [rowEditData, setEditRowData] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', evidence: '',  ai_extracted_value: ''});
+    const [rowEditData, setEditRowData] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', evidence: '',  ai_extracted_value: '', log_unit: ''});
     const [rowEditIndex, setEditRowIndex] = useState(-1);
 
     const { parameter, process, data_point } = useParams();
     
     const fields = [
-        { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_date', label: 'Log Date', type: 'date' },
+        { id: 'value', label: 'Value', type: 'text' },
+        { id: 'log_unit', label: 'Unit', type: 'text'},
         { id: 'evidence', label: 'Evidence', type: 'url' }]
 
     const [OCR_Feature, setOCR_Feature] = useState(true);  // Set the OCR feature state
     const [tableFields, setTableFields] = useState(fields);
 
     const ai_fields = [
-        { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_date', label: 'Log Date', type: 'date' },
+        { id: 'value', label: 'Value', type: 'text' },
+        { id: 'log_unit', label: 'Unit', type: 'text'},
         { id: 'evidence', label: 'Evidence', type: 'url' },
         { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text'}
     ]
@@ -58,6 +60,7 @@ export default function DataPoint() {
                             log_id: log.log_id,
                             value: log.value,
                             log_date: formatDateDisplay(log.log_date),
+                            log_unit: log.log_unit,
                             evidence: signedUrl,
                             ai_extracted_value: log.ai_extracted_value
                         };
@@ -310,6 +313,7 @@ export default function DataPoint() {
                     fields={[
                         { id: 'log_date', label: 'Log Date', type: 'date' },
                         { id: 'value', label: 'Value', type: 'text' },
+                        { id: 'log_unit', label: 'Unit', type: 'text'},
                         { id: 'evidenceFile', label: 'Evidence', type: 'file' },
                     ]}
                     newRowData={newEntry}
@@ -334,6 +338,7 @@ export default function DataPoint() {
                 fields={[
                     { id: 'log_date', label: 'Date', type: 'date' },
                     { id: 'value', label: 'Value', type: 'text' },
+                    { id: 'log_unit', label: 'Unit', type: 'text'},
                     { id: 'evidenceFile', label: 'Evidence', type: 'file' },
                     { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text' },
                 ]}

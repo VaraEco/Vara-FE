@@ -131,11 +131,11 @@ export default function DataPoint() {
 
         // Update the DB
         const {data, error} = await supabase
-        .from('parameter_log')
-        .update({
-            ai_extracted_value: ai_value,
-        })
-        .eq('log_id', log_id);
+            .from('parameter_log')
+            .update({
+                ai_extracted_value: ai_value,
+            })
+            .eq('log_id', log_id);
 
         if (error) {
             throw error;
@@ -153,8 +153,12 @@ export default function DataPoint() {
 
     const handleSaveNewEntry = async () => {
         try {
-            const { log_id, evidence_url}  = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
-            const newRowWithId = { ...newEntry, log_id, evidence_url}
+            const { log_id, evidenceUrl}  = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
+            const evidence_url = evidenceUrl ? await getSignedUrl(evidenceUrl) : null;
+            const newRowWithId = { ...newEntry, log_id}
+            if (evidence_url) {
+                newRowWithId.evidence_url = evidence_url;
+            }
             // added sorting logic here
             // setAllValues((prevData) => [...prevData, newRowWithId])
             setAllValues(prevData => [newRowWithId, ...prevData]);

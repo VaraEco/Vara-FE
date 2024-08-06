@@ -844,8 +844,7 @@ export const generalFunction = {
             throw error;
         }
         const log_id = id.log_id
-        const evidence_url = await getSignedUrl(evidenceUrl);
-        return { log_id, evidence_url };
+        return { log_id, evidenceUrl };
     },
 
     uploadFile: async (file) =>{
@@ -871,8 +870,6 @@ export const generalFunction = {
         if (error) {
             throw error;
         }
-        console.log(data)
-
         return data;
     },
 

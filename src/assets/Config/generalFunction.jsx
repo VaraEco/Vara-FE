@@ -1,8 +1,9 @@
 import Cookies from "universal-cookie";
 import { mainConfig } from "./appConfig";
-import { supabase } from "../../supabaseClient";
+import { supabase, updateSupabaseClient } from '../../supabaseClient';
 import axios from "axios";
 import { v4 as uuidv4 } from 'uuid';
+
 // import { uploadToS3 } from "./s3Config";
 
 export const generalFunction = {
@@ -36,12 +37,16 @@ export const generalFunction = {
         cookies.remove("questUserId");
         cookies.remove("questUserToken");
         cookies.remove("questUserCredentials");
+        cookies.remove("auth-token", { path: '/' });
         localStorage.removeItem("questUserId");
         localStorage.removeItem("questUserToken");
         localStorage.removeItem("questUserCredentials");
         localStorage.removeItem("adminDetails");
         localStorage.removeItem("varaCompanyId");
         localStorage.removeItem("varaUserId");
+        localStorage.removeItem("messages");
+
+        updateSupabaseClient(null);
     },
 
     createUrl: (apiString) => {
@@ -410,6 +415,18 @@ export const generalFunction = {
         return data;
     },
 
+    fetchUserPermissionRole: async (userID) => {
+        const { data, error } = await supabase
+            .from('user_permissions')
+            .select('*')
+            .eq('user_id', userID);;
+        if (error) {
+            throw error;
+        }
+        return data;
+
+    },
+
     // Add user permission
     createUserPermission: async (UserPermission) => {
         const { data, error } = await supabase
@@ -643,6 +660,32 @@ export const generalFunction = {
         }
     },
 
+    editDataPoint: async (rowData) => {
+        let evidenceUrl = '';
+        let file_name = '';
+        if (rowData.evidenceFile) {
+            evidenceUrl = await generalFunction.uploadFile(rowData.evidenceFile);
+            file_name = `${Date.now()}_${rowData.evidenceFile.name}`;
+        }
+        const {data, error} = await supabase
+            .from('parameter_log')
+            .update({
+                value: rowData.value,
+                log_date: rowData.log_date,
+                evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
+                evidence_name: file_name,
+                ai_extracted_value: rowData.ai_extracted_value,
+                log_unit: rowData.log_unit
+            })
+            .eq('log_id', rowData.log_id);
+
+        if (error) {
+            throw error;
+        }
+
+        return evidenceUrl
+    },
+
     createSupplierEmail: async (receiver, sender, date_sent, supplierData) => {
         const { data, error } = await supabase
             .from('supplier_emails')
@@ -720,6 +763,19 @@ export const generalFunction = {
         return data;
     },
 
+    fetchParameterDataSourceData: async (id) =>{
+        const { data, error } = await supabase
+        .from('parameter_log')
+        .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value, log_unit')
+        .eq('data_collection_id', id);
+
+        if (error){
+            console.error(error);
+            return
+        }
+        return data
+    },
+
     fetchUserDataEntry: async (userId, processId, parameterId, datacollectionid) => {
         const { data, error } = await supabase
             .from('parameter_log')
@@ -738,33 +794,59 @@ export const generalFunction = {
         
         return data;
     },
+
+    getURLFromS3: (file_name) =>{
+          return `https://compliance-document-bucket.s3.amazonaws.com/${file_name}`
+    },
     
     createUserDataEntry: async (userId, processId, parameterId, datacollectionid, newEntry) => {
-    
         // Step 2: Upload evidence file if it exists
         let evidenceUrl = '';
+        let file_name = '';
         if (newEntry.evidenceFile) {
             evidenceUrl = await generalFunction.uploadFile(newEntry.evidenceFile);
+            file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
         }
-    
+
+        // Upload to S3 here instead
+        // const params = {
+        //     Bucket: "compliance-document-bucket",
+        //     Key: file_name,
+        //     Body: newEntry.evidenceFile,
+        //   };
+        //   try {
+        //     const upload = await uploadToS3(newEntry.evidenceFile, "compliance-document-bucket", file_name).promise();
+        //     console.log(upload);
+        //     alert("File uploaded successfully.");
+        //   } catch (error) {
+        //     console.error(error);
+        //     alert("Error uploading file: " + error.message); // Inform user about the error
+        //   }
+
         // Step 3: Insert into parameter_log with retrieved data_collection_id and evidence URL
-        const { data, error } = await supabase
+        const { data: id, error } = await supabase
             .from('parameter_log')
             .insert([
                 {
                     process_id: processId,
                     para_id: parameterId,
                     value: newEntry.value,
-                    log_date: newEntry.date,
+                    log_date: newEntry.log_date,
                     data_collection_id: datacollectionid,
-                    evidence_url: evidenceUrl // Save the public URL returned from the uploadFile function
+                    evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
+                    evidence_name: file_name,
+                    ai_extracted_value: newEntry.ai_extracted_value,
+                    log_unit: newEntry.log_unit
                 }
-            ]);
+            ])
+            .single()
+            .select('log_id');
     
         if (error) {
             throw error;
         }
-        return data;
+        const log_id = id.log_id
+        return { log_id, evidenceUrl };
     },
 
     uploadFile: async (file) =>{
@@ -776,19 +858,26 @@ export const generalFunction = {
         .upload(`test/${fileName}`, file);
 
         return data.path;
+    },
 
+    deleteFile: async (fileName) =>{
+        const { data } = await supabase
+            .storage
+            .from('Evidence')
+            .remove([`test/${fileName}`]);
+
+        console.log(data)
     },
 
     getSignedUrl: async (path) => {
         const { data, error } = await supabase
         .storage
         .from('Evidence')
-        .createSignedUrl(path, 60);  // URL valid for 60 seconds
+        .createSignedUrl(path, 86400);  // 24 hours expiry
 
         if (error) {
             throw error;
         }
-
         return data;
     },
 
@@ -882,7 +971,7 @@ export const generalFunction = {
             return null;
         }
     },
-    
+  
     generateAndSetJWT: async (userId) => {
         try {
             const { data, error } = await supabase.functions.invoke('jwt_generating_function', {

@@ -1,6 +1,8 @@
 import React from 'react';
 import Button from './Button';
 import IconError from "./IconError";
+import PdfViewer from './PdfViewer';
+import { useState } from 'react';
 
 const PopUp = ({
   title,
@@ -15,6 +17,30 @@ const PopUp = ({
   button2Label = 'Save',
   validationErrors,
 }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState('');
+
+  const handleViewClick = (pdfUrl, e) => {
+      e.preventDefault();
+      setSelectedPdfUrl(pdfUrl);
+      setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+      setIsModalOpen(false);
+      setSelectedPdfUrl('');
+  };
+
+  const formatDateForInput = (dateString) => {
+    if (dateString.includes('/')) {
+      const [month, day, year] = dateString.split('/');
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    } else if (dateString.includes('-')) {
+      return dateString;
+    }
+    //return new Date(dateString).toLocaleDateString();
+  };
+
   return (
     <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
@@ -45,11 +71,22 @@ const PopUp = ({
                   <tbody>
                     {newRowData[field.id] && newRowData[field.id].map((log, index) => (
                       <tr key={index}>
-                        {field.tableFields.map((tableField) => (
+                       {field.tableFields.map((tableField) => (
                           <td key={tableField.id} className="border px-4 py-2">
-                            {log[tableField.id.toLowerCase()]}
-                          </td>
-                        ))}
+                              {tableField.type === 'url' ? (
+                                 <a
+                                 href="#"
+                                 onClick={(e) => handleViewClick(log[tableField.id.toLowerCase()], e)}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                             >
+                                 View
+                             </a>
+                        ) : (
+                          log[tableField.id.toLowerCase()]
+                        )}
+                      </td>
+                    ))}
                       </tr>
                     ))}
                   </tbody>
@@ -78,14 +115,14 @@ const PopUp = ({
                 />
               ) : (
                 <input
-                  type={field.type || 'text'}
-                  id={field.id}
-                  name={field.id}
-                  value={newRowData[field.id] || field.default || ''}
-                  onChange={field.readOnly ? null : handleInputChange}
-                  className={`border border-gray-300 rounded-md shadow-sm mt-1 block w-full ${field.readOnly ? 'bg-gray-100 cursor-not-allowed focus:outline-none disabled' : ''}`}
-                  readOnly={readOnly}
-                />
+                type={field.type === 'date' ? 'date' : field.type || 'text'}
+                id={field.id}
+                name={field.id}
+                value={field.type === 'date' ? formatDateForInput(newRowData[field.id]) : newRowData[field.id] || field.default || ''}
+                onChange={field.readOnly ? null : handleInputChange}
+                className={`border border-gray-300 rounded-md shadow-sm mt-1 block w-full ${field.readOnly ? 'bg-gray-100 cursor-not-allowed focus:outline-none disabled' : ''}`}
+                readOnly={readOnly}
+              />
               )}
             </div>
           ))}
@@ -98,6 +135,7 @@ const PopUp = ({
           </div>
         </form>
       </div>
+      <PdfViewer pdfUrl={selectedPdfUrl} isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );
 };

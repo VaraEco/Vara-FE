@@ -46,6 +46,11 @@ export default function Onboarding() {
                         
                     }
                 );
+
+                let userdata = await generalFunction.getUserIdFromEmail(generalFunction.getUserCredentials()?.email);
+
+                await generalFunction.updateRole(userdata[0].id);
+
             }
             navigate("/data_collection");
         } else {

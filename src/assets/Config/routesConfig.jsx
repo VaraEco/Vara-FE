@@ -147,6 +147,20 @@ export const routesConfig = [
         isUpper: true,
     },
     {
+        path: "/data_collection/:parameter/:process/:data_point",
+        name: "data_source",
+        logo: InsightsSvg(),
+        component: (
+            <ProviderConfig showTag={false}>
+                <DashboardWrapper selectdRoute={"parameter"}>
+                    <DataPoint></DataPoint>
+                </DashboardWrapper>
+            </ProviderConfig>
+        ),
+        hidden: true,
+        isUpper: true,
+    },
+    {
         path: "/data_collection/admin",
         name: "Datasource",
         logo: InsightsSvg(),
@@ -300,4 +314,16 @@ export const routesConfig = [
         hidden: true,
         isUpper: true,
     },
+    {
+        path: "/chatbot",
+        name: "Chatbot",
+        logo: "",
+        component: (
+            <ProviderConfig showTag={false}>
+                <Chatbot />
+            </ProviderConfig>
+        ),
+        hidden: true,
+        isUpper: false,
+    }
 ];

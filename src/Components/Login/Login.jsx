@@ -7,8 +7,10 @@ import { useContext } from "react";
 import { ThemeContext } from "../Common/AppContext";
 import { mainConfig } from "../../assets/Config/appConfig";
 import { generalFunction } from "../../assets/Config/generalFunction";
+import { userPermissions } from "../../assets/Config/accessControl";
 
 export default function Login() {
+    generalFunction.logout();
     const navigate = useNavigate();
     const { appConfig, theme, bgColors, contentConfig } =
         useContext(ThemeContext);
@@ -36,6 +38,19 @@ export default function Login() {
                 "questUserCredentials",
                 JSON.stringify(userCredentials)
             );
+
+            const isLocal = window.location.hostname === 'localhost';
+            if (!isLocal){
+                try {
+                    const jwtToken = await generalFunction.generateAndSetJWT(localStorage.getItem("varaUserId"));
+                    // You can use jwtToken here if needed
+                  } 
+                catch (error) {
+                    // Handle error
+                    console.error('Error in JWT generation:', error);
+                  }
+            }
+            
             
             if (refQuery) {
                 let request = generalFunction.createUrl(`api/v2/entities/${mainConfig.QUEST_ENTITY_ID}/campaigns/${appConfig.QUEST_REFERRAL_CAMPAIGN_ID}/claim`);
@@ -121,7 +136,11 @@ export default function Login() {
             if (!claimedStatus) {
                 navigate("/onboarding");
             } else {
-                navigate("/data_collection");
+                if(await userPermissions.userEntersDataEntry()){
+                    navigate("/data_entry");
+                } else {
+                    navigate("/data_collection");
+                }
             }
         }
     };

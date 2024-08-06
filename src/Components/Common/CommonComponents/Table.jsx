@@ -2,13 +2,26 @@ import React, { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import IconSearch from "./IconSearch";
 import Button from "./Button";
+import PdfViewer from './PdfViewer';
 
 const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions = false, actions = [], rowsPerPage = 10, enablePagination = false, searchableColumn, importButton = false, handleOpenImport, importType = '' }) => {
   fields = fields.filter(field => !field.no_show);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState('');
 
+    const handleViewClick = (pdfUrl, e) => {
+        e.preventDefault();
+        setSelectedPdfUrl(pdfUrl);
+        setIsModalOpen(true);
+    };
+
+    const closeModal = () => {
+      setIsModalOpen(false);
+      setSelectedPdfUrl('');
+  };
   const totalPages = tableData ? Math.ceil(tableData.length / rowsPerPage) : 0;
 
   const handleRowClick = (id) => {
@@ -32,7 +45,12 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
   const paginatedData = enablePagination ? filteredData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage) : filteredData;
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // getUTCMonth() returns month index starting from 0
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    const year = date.getUTCFullYear();
+    return `${month}/${day}/${year}`;
   };
 
   return (
@@ -89,7 +107,19 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
                 >
                   {fields.map((field) => (
                     <td key={field.id} className={`px-2 py-4 ${isLastRow ? '' : 'border-b'} ${clickable ? 'hover:text-[#0475E6]' : ''}`}>
-                      {field.type === 'date' ? formatDate(row[field.id]) : row[field.id]}
+                      {field.type === 'date' ? ( formatDate(row[field.id]))
+                      : field.type === 'url' && row[field.id] ? (
+                        <a
+                          href={row[field.id]}
+                          // onClick={(e) => handleViewClick(row[field.id], e)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View
+                        </a>
+                      ) : (
+                        row[field.id]
+                      )}
                     </td>
                   ))}
                   {hasActions && (
@@ -127,6 +157,7 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
             </button>
           </div>
         )}
+         <PdfViewer pdfUrl={selectedPdfUrl} isOpen={isModalOpen} onClose={closeModal} />
       </div> 
     </div>
   );

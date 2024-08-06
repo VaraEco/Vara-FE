@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../supabaseClient';
 import { useParams } from 'react-router-dom';
+import { generalFunction } from '../../assets/Config/generalFunction';
 import PopUp from '../Common/CommonComponents/PopUp';
 import Button from '../Common/CommonComponents/Button';
+import { apiClient } from '../../assets/Config/apiClient';
+import { useNavigate } from 'react-router-dom';
 
 export default function Parameter() {
     const [collectionData, setCollectionData] = useState([]);
@@ -14,6 +17,9 @@ export default function Parameter() {
     const [newDataCollectionPoint, setNewDataCollectionPoint] = useState({ name: '', method: '' });
     const [facilityName, setFacilityName] = useState('');
     const [processName, setProcessName] = useState('');
+    const [parameterName, setParameterName] = useState('');
+    const [parameterUnit, setParameterUnit] = useState('');
+    const navigate = useNavigate();
 
     const tableFields = [
         { id: 'name', label: 'Point Name' },
@@ -44,6 +50,20 @@ export default function Parameter() {
             setFacilityName(mappingData.process.facility.facility_name);
             setProcessName(mappingData.process.process_name);
 
+            // Get Parameter Name from Paramter Id
+            const parameterId = parseInt(parameter, 10);
+            const { data: parameter_name, error: parameter_error } = await supabase
+                .from('parameter')
+                .select('*')
+                .eq('para_id', parameterId);
+
+            if (parameter_error) {
+                console.error('Error fetching parameter:', parameter_error);
+            }
+
+            setParameterName(parameter_name[0].para_name)
+            setParameterUnit(parameter_name[0].para_metric)
+
             // Get data collection points
             const { data: collectionPoints, error: collectionError } = await supabase
                 .from('data_collection_points')
@@ -61,28 +81,111 @@ export default function Parameter() {
         }
     };
 
-    const handleCellClick = async (row) => {
-        setIsPopupOpen(true);
-
-        const { data, error } = await supabase
-            .from('parameter_log')
-            .select('value, log_date')
-            .eq('data_collection_id', row.id);
-
-        if (error) {
-            console.error(error);
+    const getSignedUrl = async (evidence_url, evidence_name) => {
+        if (evidence_url) {
+            // Getting Supabase document
+            const signedUrl = await generalFunction.getSignedUrl(evidence_url);
+            // Getting document from S3
+            //const S3url = await generalFunction.getURLFromS3(evidence_name)
+            return signedUrl.signedUrl
         } else {
-            const processedData = {
-                ...row,
-                parameter_log: data.map(log => ({ value: log.value, log_date: new Date(log.log_date).toLocaleDateString() })),
-            };
-            setParameterData(processedData);
-            setPopupFields([
-                { id: 'name', label: 'Name' },
-                { id: 'method', label: 'Method' },
-                { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [{ id: 'value', label: 'Value' }, { id: 'log_date', label: 'Log Date' }] }
-            ]);
+            return "N/A"
         }
+
+    }
+
+    const getAIExtractedValue = async (log) => {
+        if (log.ai_extracted_value) {
+            return log.ai_extracted_value
+        }
+        else if(log.evidence_name) {
+            const ai_value = await apiClient.getOCRValue(log.evidence_name);
+
+            // update the database with this value
+            const { data, error } = await supabase
+                .from('parameter_log')
+                .update({ai_extracted_value: ai_value})
+                .eq('log_id', log.log_id);
+
+            if (error) {
+                throw error;
+            }
+
+            return ai_value;
+        }
+        return '';
+    }
+
+
+    const handleCellClick = async (row) => {
+        navigate(`${row.id}`);
+
+        // setIsPopupOpen(true);
+        // console.log(row)
+        // const isLocal = window.location.hostname === 'localhost';
+        // //const OCR_Feature =  isLocal ? true : false
+        // const OCR_Feature = false
+        // console.log(row.id)
+        // const data = await generalFunction.fetchParameterDataSourceData(row.id)
+        // console.log(data)
+        // const { data, error } = await supabase
+        //     .from('parameter_log')
+        //     .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value')
+        //     .eq('data_collection_id', row.id);
+
+        // console.log(data)
+        // if (error){
+        //     console.error(error);
+        //     return
+        // }
+
+        // const parameterLogs = await Promise.all(data.map(async log => {
+        //     const signedUrl = await getSignedUrl(log.evidence_url, log.evidence_name);
+        //     let OCRValue = '';
+        //     if (OCR_Feature) {
+        //         OCRValue = await getAIExtractedValue(log);
+        //     }
+        //     return {
+        //         value: log.value,
+        //         log_date: new Date(log.log_date).toLocaleDateString(),
+        //         evidence: signedUrl,
+        //         ai_extracted_value: OCRValue
+        //     };
+        // }));
+
+        // const processedData = {
+        //     ...row,
+        //     parameter_log: parameterLogs
+        // };
+
+        // setParameterData(processedData);
+
+        // const baseFields = [
+        //     { id: 'name', label: 'Name' },
+        //     { id: 'method', label: 'Method' },
+        //     { id: 'parameter_log', label: 'Parameter Log', type: 'table', tableFields: [
+        //         {
+        //             id: 'value',
+        //             label: 'Value'
+        //         },
+        //         {   id: 'log_date',
+        //             label: 'Log Date'
+        //         },
+        //         {
+        //             id: 'evidence',
+        //             label: 'Evidence',
+        //             type: 'url'
+        //         }
+        //     ]}
+        // ];
+
+        // if(OCR_Feature) {
+        //     baseFields[2].tableFields.push({
+        //         id: 'ai_extracted_value',
+        //         label: 'AI Extracted Value'
+        //     });
+        // }
+        // setPopupFields(baseFields);
     };
 
     const handleAddDataCollectionPoint = async () => {
@@ -138,12 +241,32 @@ export default function Parameter() {
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
             <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-4xl">
-                <h1 className="text-2xl text-center mb-4">Parameter Data</h1>
-                <h2 className="text-2xl text-left mb-4">Facility: {facilityName}</h2>
-                <h2 className="text-2xl text-left mb-4">Process: {processName}</h2>
+                <h1 className="text-xl text-center mb-4">Parameter Data</h1>
+
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
+                        <div className=" p-4 rounded-lg">
+                                <h2 className="text-l font-semibold text-gray-700">Parameter</h2>
+                                <p className="text-lg text-gray-500">{parameterName}</p>
+                        </div>
+                        <div className=" p-4 rounded-lg">
+                                <h2 className="text-l font-semibold text-gray-700">Unit</h2>
+                                <p className="text-lg text-gray-500">{parameterUnit}</p>
+                        </div>
+                        <div className=" p-4 rounded-lg">
+                            <h2 className="text-l font-semibold text-gray-700">Facility</h2>
+                            <p className="text-lg text-gray-500">{facilityName}</p>
+                        </div>
+                        <div className=" p-4 rounded-lg">
+                            <h2 className="text-l font-semibold text-gray-700">Process</h2>
+                            <p className="text-lg text-gray-500">{processName}</p>
+                        </div>
+                    </div>
+            </div>
+
                 <div className="container mx-auto">
                     <div className="mt-4">
-                        <h2 className="text-xl">Data Collection Points</h2>
+                        <h2 className="text-l text-center">Data Collection Points</h2>
                         <table className="min-w-full bg-white">
                             <thead>
                                 <tr>

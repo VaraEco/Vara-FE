@@ -34,7 +34,8 @@ export default function DataEntryDetails() {
                 return entry;
             }));
 
-            setUserDataEntry(entriesWithSignedUrls);
+            const sortedData = entriesWithSignedUrls.sort((a, b) => new Date(b.log_date) - new Date(a.log_date));
+            setUserDataEntry(sortedData);
         } catch (error) {
             console.log("Error fetching data: ", error);
         }

@@ -184,8 +184,8 @@ const AdminComponent = () => {
 
     return (
         <div className="w-full h-full">
-            <div className="w-full flex items-center justify-between gap-4 mt-[24px]">
-                <div className="flex h-10 border py-2.5 items-center rounded-[10px] w-full"
+            <div className="w-full flex items-center justify-end gap-4 mt-[24px]">
+                {/* <div className="flex h-10 border py-2.5 items-center rounded-[10px] w-full"
                     style={{
                         border: `1.5px solid ${bgColors[`${theme}-primary-border-color`]}`
                     }}
@@ -205,7 +205,7 @@ const AdminComponent = () => {
                             setSearch(e.target.value);
                         }}
                     />
-                </div>
+                </div> */}
                 <button
                     className="flex items-center text-sm py-[10px] rounded-[10px] px-[32px] gap-1"
                     style={{
@@ -244,7 +244,7 @@ const AdminComponent = () => {
                     className="mt-[16px] rounded-xl border overflow-y-auto"
                     style={{border: `1.5px solid ${bgColors[`${theme}-primary-border-color`]}`}}
                 >
-                    <table className="min-w-[1100px] w-full " style={{
+                    <table className="w-full " style={{
                         color: bgColors[`${theme}-primary-bg-color-8`]
                     }}>
                         <thead style={{background: theme == "dark" ? 'transparent' : '#F0F0F0'}}>
@@ -257,7 +257,7 @@ const AdminComponent = () => {
                                         color: bgColors[`${theme}-color-premitive-grey-9`],
                                         background: bgColors[`${theme}-primary-bg-color-9`]
                                     }}>
-                                    Sr
+                                    Id
                                 </th>
                                 <th className="w-[25%] text-center py-[18px]" style={{
                                     color: bgColors[`${theme}-color-premitive-grey-9`],
@@ -277,12 +277,12 @@ const AdminComponent = () => {
                                 }}>
                                     Role 123
                                 </th> */}
-                                <th className="w-[10%] text-center py-[18px] " style={{
+                                {/* <th className="w-[10%] text-center py-[18px] " style={{
                                     color: bgColors[`${theme}-color-premitive-grey-9`],
                                     background: bgColors[`${theme}-primary-bg-color-9`]
                                 }}>
                                     Status
-                                </th>
+                                </th> */}
                                 <th className="w-[10%] px-6 py-[18px]  rounded-tr-xl" style={{
                                     color: bgColors[`${theme}-color-premitive-grey-9`],
                                     background: bgColors[`${theme}-primary-bg-color-9`]
@@ -341,7 +341,7 @@ const AdminComponent = () => {
                                             user.role
                                         }
                                     </td> */}
-                                    <td 
+                                    {/* <td 
                                         className="w-[10%] px-6 py-4 text-center"
                                         style={{
                                             color: bgColors[
@@ -352,7 +352,7 @@ const AdminComponent = () => {
                                         {user.isActive === true
                                             ? "Active"
                                             : "Inactive"}
-                                    </td>
+                                    </td> */}
                                     <td 
                                         className="w-[10%] px-6 py-4 text-center"
                                         style={{

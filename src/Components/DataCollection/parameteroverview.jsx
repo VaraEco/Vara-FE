@@ -333,9 +333,13 @@ export default function Parameteroverview() {
                     <>
                     <h1 className="text-xl text-center mb-4 p-2">Data Collection</h1>
                     {renderTable()}
-                    <button onClick={handleOpenParameterPopup} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                        Add Parameter
-                    </button>
+                    <div className="flex justify-center mt-4">
+                        <Button
+                            label="Add Parameter"
+                            handleFunction={handleOpenParameterPopup}
+                            additionalClasses="bg-red-500"
+                        />
+                    </div>
                     </>
                 ) : (
                     <div className="text-left p-10 mt-4 text-black-500">
@@ -344,8 +348,8 @@ export default function Parameteroverview() {
                 )}
 
                     {isParameterPopupOpen && (
-                        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-                            <div className="bg-white p-6 rounded-lg">
+                            <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+                                <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
                                 <h2 className="text-lg font-bold mb-4">Add Parameter</h2>
                                 <form onSubmit={(e) => e.preventDefault()}>
                                     <div className="mb-4">
@@ -406,13 +410,10 @@ export default function Parameteroverview() {
                                             </select>
                                         </div>
                                     )}
-                                    <button
-                                        type="button"
-                                        onClick={addProcessFacilityMapping}
-                                        className="mt-2 bg-blue-500 text-white px-1 py-0.5 rounded-md"
-                                    >
-                                        + Add Process-Facility Combination
-                                    </button>
+                                    <Button
+                                        label="Save Process-Facility"
+                                        handleFunction={addProcessFacilityMapping}
+                                    />
                                     <div className="mb-4">
                                         {newParameterData.processFacilityMappings.map((mapping, index) => (
                                             <div key={index} className="mb-2">
@@ -447,10 +448,11 @@ export default function Parameteroverview() {
                         </div>
                     )}
                     {isProcessParameterPopupOpen && (
-                        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-                            <div className="bg-white p-6 rounded-lg">
-                                <h2 className="text-lg font-bold mb-4">Process Parameter Details</h2>
-                                <table className="mt-4 w-full border-collapse border border-gray-300">
+                            <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+                                <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
+                                <div className="text-center">
+                                <h2 className="text-lg mb-4">Process Parameter Details</h2>
+                                <table className="mt-4 w-full justify-center border-collapse border border-gray-300">
                                     <thead>
                                         <tr>
                                             <th className="border border-gray-300">Facility</th>
@@ -474,6 +476,7 @@ export default function Parameteroverview() {
                                         ))}
                                     </tbody>
                                 </table>
+                                </div>
 
                                 <div className="form-group">
                                     <label htmlFor="popup-facility">Facility</label>
@@ -508,7 +511,7 @@ export default function Parameteroverview() {
                                     </select>
                                 </div>
                                 <Button
-                                    label="Add Process-Parameter Mapping"
+                                    label="Save Process-Parameter"
                                     handleFunction={addProcessParameterMapping}
                                     additionalClasses="bg-blue-500 mt-4"
                                 />

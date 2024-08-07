@@ -265,7 +265,7 @@ export default function Parameter() {
             </div>
 
                 <div className="container mx-auto">
-                    <div className="mt-4">
+                    {/* <div className="mt-4">
                         <h2 className="text-l text-center">Data Collection Points</h2>
                         <table className="min-w-full bg-white">
                             <thead>
@@ -285,7 +285,43 @@ export default function Parameter() {
                                 ))}
                             </tbody>
                         </table>
+                    </div> */}
+                    <div className="mt-8 px-4">
+                    <h2 className="text-l text-center mb-4 text-gray-800">Data Collection Points</h2>
+                    <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-sm">
+                        <thead className="bg-gray-200">
+                        <tr>
+                            {tableFields.map((field) => (
+                            <th
+                                key={field.id}
+                                className="py-3 px-4 text-left text-gray-700 font-medium uppercase tracking-wider"
+                            >
+                                {field.label}
+                            </th>
+                            ))}
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {collectionData.map((row) => (
+                            <tr
+                            key={row.id}
+                            className="cursor-pointer hover:bg-gray-100 transition-colors"
+                            onClick={() => handleCellClick(row)}
+                            >
+                            {tableFields.map((field) => (
+                                <td
+                                key={field.id}
+                                className="py-3 px-4 text-gray-600 border-b border-gray-200"
+                                >
+                                {row[field.id]}
+                                </td>
+                            ))}
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
                     </div>
+
                     {isPopupOpen && (
                         <PopUp
                             title="Parameter Data"
@@ -309,7 +345,7 @@ export default function Parameter() {
                         />
                     )}
                 </div>
-                <div className="mt-4">
+                <div className="flex justify-center mt-4">
                     <Button
                         label="Add Data Collection Point"
                         handleFunction={() => setIsAddPopupOpen(true)}

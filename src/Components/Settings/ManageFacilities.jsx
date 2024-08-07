@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import { ThemeContext } from "../Common/AppContext";
 import { supabase } from '../../supabaseClient';
 import { generalFunction } from '../../assets/Config/generalFunction';
+import Button from "../Common/CommonComponents/Button";
+
 
 const ManageFacilities = () => {
   const { theme, bgColors, appConfig } = useContext(ThemeContext);
@@ -12,10 +14,6 @@ const ManageFacilities = () => {
   const [editFacility, setEditFacility] = useState({ name: '', type: '', address: '', processes: [''] });
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [facilityToDelete, setFacilityToDelete] = useState(null);
-
-
-
-  
 
   useEffect(() => {
     fetchFacilities();
@@ -306,12 +304,13 @@ const ManageFacilities = () => {
               ))}
             </tbody>
           </table>
-          <button 
-            className="mt-4 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-            onClick={() => setIsPopupOpen(true)}
-          >
-            Add Facility
-          </button>
+          <div className="flex justify-center mt-4">
+          <Button
+              label="Add Facility"
+              handleFunction={() => setIsPopupOpen(true)}
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          />
+          </div>
         </div>
       </div>
       {isDeletePopupOpen && (
@@ -365,8 +364,8 @@ const ManageFacilities = () => {
 };
 //Common Popup form for adding new facility or editing existing facility
 const PopupForm = ({ facility, handleInputChange, handleProcessChange, handleAddProcess, handleDeleteProcess, handleSubmit, handleClose }) => (
-  <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-    <div className="bg-white p-6 rounded-lg">
+  <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
       <h2 className="text-lg font-bold mb-4">{facility.facility_id ? "Edit Existing Facility" : "Add New Facility"}</h2>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="mb-4">
@@ -423,13 +422,15 @@ const PopupForm = ({ facility, handleInputChange, handleProcessChange, handleAdd
               </button>
             </div>
           ))}
-          <button
-            type="button"
-            onClick={handleAddProcess}
-            className="mt-2 bg-blue-500 text-white px-1 py-0.5 rounded-md"
-          >
-            + 
-          </button>
+          <div className="flex justify-center mt-4">
+            <button
+              type="button"
+              onClick={handleAddProcess}
+              className="bg-green-500 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition duration-150 ease-in-out"
+            >
+              Save Process
+            </button>
+          </div>
         </div>
         <div className="flex justify-end">
           <button

@@ -2,6 +2,7 @@ import Cookies from "universal-cookie";
 import { mainConfig } from "./appConfig";
 import { supabase, updateSupabaseClient } from '../../supabaseClient';
 import axios from "axios";
+import { v4 as uuidv4 } from 'uuid';
 // import { uploadToS3 } from "./s3Config";
 
 export const generalFunction = {
@@ -988,5 +989,14 @@ export const generalFunction = {
             console.error('Error generating JWT:', error);
             throw error;
           }
+    },
+
+    getChatId: async () => {
+        let chat_id = localStorage.getItem("chatId");
+        if (!chat_id) {
+            localStorage.setItem('chatId', uuidv4());
+            chat_id = localStorage.getItem("chatId");
+        }
+        return chat_id;
     }
 }

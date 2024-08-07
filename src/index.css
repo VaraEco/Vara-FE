@@ -144,3 +144,31 @@ img{
 input[type='text'] {
   font-size: 14px;
 }
+
+.filepond--panel-root {
+  background-color: #eef2ff;
+}
+
+/* the text color of the drop label*/
+.filepond--drop-label {
+  color: #6d6acb;
+}
+
+.filepond--label-action {
+  text-decoration-color: #6d6acb;
+}
+
+@keyframes slideUp {
+  from {
+      transform: translateY(20px);
+      opacity: 0;
+  }
+  to {
+      transform: translateY(0);
+      opacity: 1;
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}

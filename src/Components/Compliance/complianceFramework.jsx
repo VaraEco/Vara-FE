@@ -68,7 +68,7 @@ export default function Compliance() {
   };
 
   return (
-    <div className="flex flex-col justify-center overflow-hidden mt-20 p-6">
+    <div className="flex flex-col justify-center overflow-hidden mt-20 p-6 font-extralight">
       <h1 className="text-xl text-center mb-10">Compliance Framework</h1>
       <Table
         fields={compliance_fields}

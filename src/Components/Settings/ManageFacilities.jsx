@@ -365,8 +365,8 @@ const ManageFacilities = () => {
 };
 //Common Popup form for adding new facility or editing existing facility
 const PopupForm = ({ facility, handleInputChange, handleProcessChange, handleAddProcess, handleDeleteProcess, handleSubmit, handleClose }) => (
-  <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-    <div className="bg-white p-6 rounded-lg">
+  <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
       <h2 className="text-lg font-bold mb-4">{facility.facility_id ? "Edit Existing Facility" : "Add New Facility"}</h2>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="mb-4">
@@ -423,13 +423,15 @@ const PopupForm = ({ facility, handleInputChange, handleProcessChange, handleAdd
               </button>
             </div>
           ))}
-          <button
-            type="button"
-            onClick={handleAddProcess}
-            className="mt-2 bg-blue-500 text-white px-1 py-0.5 rounded-md"
-          >
-            + 
-          </button>
+          <div className="flex justify-center mt-4">
+            <button
+              type="button"
+              onClick={handleAddProcess}
+              className="bg-green-500 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition duration-150 ease-in-out"
+            >
+              Save Process
+            </button>
+          </div>
         </div>
         <div className="flex justify-end">
           <button

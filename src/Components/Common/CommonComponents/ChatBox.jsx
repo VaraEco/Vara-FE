@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import IconSend from './IconSend';
+import { generalFunction } from '../../../assets/Config/generalFunction';
+import { apiClient } from '../../../assets/Config/apiClient';
 
 export default function ChatBot() {
     const textAreaRef = useRef(null);
@@ -7,6 +9,15 @@ export default function ChatBot() {
     const [userInput, setUserInput] = useState('');
     const [userChats, setUserChats] = useState([]);
     const [lastMessageIndex, setLastMessageIndex] = useState(null);
+    const [chatId, setChatId] = useState('');
+
+    useEffect(() => {
+        async function fetchId() {
+            const id = await generalFunction.getChatId();
+            setChatId(id);
+        }
+        fetchId(); 
+    }, []);
 
     useEffect(() => {
         if (textAreaRef.current) {
@@ -34,9 +45,10 @@ export default function ChatBot() {
         setUserInput(e.target.value);
     };
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (userInput.trim() !== '') {
             setUserChats([...userChats, userInput]);
+            await apiClient.sendUserQuery(userInput, chatId);
             setLastMessageIndex(userChats.length);
             setUserInput('');
         }

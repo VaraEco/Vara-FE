@@ -22,6 +22,7 @@
     "@supabase/supabase-js": "^2.42.4",
     "axios": "^1.6.2",
     "filepond": "^4.31.1",
+    "filepond-plugin-file-rename": "^1.1.8",
     "filepond-plugin-image-exif-orientation": "^1.0.11",
     "filepond-plugin-image-preview": "^4.6.12",
     "formdata-polyfill": "^4.0.10",

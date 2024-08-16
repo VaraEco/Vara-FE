@@ -49,14 +49,10 @@ export const apiClient = {
 
     sendUserQuery: async (userInput, userId) => {
         try {
-            console.log('S3 API URL:', process.env.REACT_APP_BACKEND_S3_API);
-            console.log('Textract API URL:', process.env.REACT_APP_BACKEND_TEXTRACT_API);
-            console.log('Chatbot Query API URL:', process.env.REACT_APP_BACKEND_CHATBOT_QUERY_API);
-
             const response = await axios.post(
                 chatbot_query_api,
                 {
-                    message: userInput,
+                    query: userInput,
                     chatId: userId
                 },
                 {
@@ -64,9 +60,10 @@ export const apiClient = {
                         'Content-Type': 'application/json'
                 }
             });
-            return response.data.Value;
+            return response.data;
         } catch (error) {
                 console.error('Error sending message to backend:', error);
+                return "error";
         }
     },
 

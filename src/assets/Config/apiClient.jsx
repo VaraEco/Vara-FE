@@ -48,10 +48,10 @@ export const apiClient = {
     },
 
     sendUserQuery: async (userInput, userId) => {
-        console.log("chatbot api is", chatbot_query_api)
+        console.log("chatbot api is", 'https://vara.ploomberapp.io/api/data/analyze')
         try {
             const response = await axios.post(
-                chatbot_query_api,
+                'https://vara.ploomberapp.io/api/data/analyze',
                 {
                     query: userInput,
                     chatId: userId

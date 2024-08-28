@@ -3,7 +3,7 @@ import axios from "axios";
 
 const S3_api = process.env.REACT_APP_BACKEND_S3_API;
 const TextRact_api = process.env.REACT_APP_BACKEND_TEXTRACT_API;
-const chatbot_query_api = process.env.REACT_APP_BACKEND_CHATBOT_QUERY_API;
+const chatbot_query_api = 'https://vara.ploomberapp.io/api/data/analyze';
 
 export const apiClient = {
 

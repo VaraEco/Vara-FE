@@ -27,6 +27,8 @@ export default function DataAnalytics() {
 
     const [files, setFiles] = useState([]);
     const [uploaded, setUploaded] = useState(false);
+    const storage_api = process.env.REACT_APP_BACKEND_DOC_UPLOAD_API;
+    console.log("Storage api is: ", storage_api)
 
     return (
         <div className="flex flex-col justify-center overflow-hidden p-6 h-screen">
@@ -40,7 +42,7 @@ export default function DataAnalytics() {
                         allowReorder={true}
                         onupdatefiles={setFiles}
                         labelIdle='Drop CSV here or <span class="filepond--label-action">browse</span>'
-                        server="http://localhost:8000/api/upload/document/data/analysis"
+                        server={storage_api}
                         onprocessfile={(error, file) => {
                             console.log("file name:", file.filename);
                             setUploaded(true);

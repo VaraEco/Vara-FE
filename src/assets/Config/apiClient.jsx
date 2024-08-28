@@ -48,6 +48,7 @@ export const apiClient = {
     },
 
     sendUserQuery: async (userInput, userId) => {
+        console.log("chatbot api is", chatbot_query_api)
         try {
             const response = await axios.post(
                 chatbot_query_api,

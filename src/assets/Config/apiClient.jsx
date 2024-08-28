@@ -3,6 +3,7 @@ import axios from "axios";
 
 const S3_api = process.env.REACT_APP_BACKEND_S3_API;
 const TextRact_api = process.env.REACT_APP_BACKEND_TEXTRACT_API;
+const chatbot_query_api = process.env.REACT_APP_BACKEND_CHATBOT_QUERY_API;
 
 export const apiClient = {
 
@@ -44,6 +45,27 @@ export const apiClient = {
         } catch (error) {
                 console.error('Error sending message to backend:', error);
         }
-    }
+    },
+
+    sendUserQuery: async (userInput, userId) => {
+        try {
+            const response = await axios.post(
+                chatbot_query_api,
+                {
+                    query: userInput,
+                    chatId: userId
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                }
+            });
+            console.log(response.data)
+            return response.data;
+        } catch (error) {
+                console.error('Error sending message to backend:', error);
+                return "error";
+        }
+    },
 
 }

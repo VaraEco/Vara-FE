@@ -6,6 +6,8 @@ import "filepond/dist/filepond.min.css";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+import FilePondPluginFileRename from 'filepond-plugin-file-rename';
+registerPlugin(FilePondPluginFileRename);
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
 import { generalFunction } from '../../assets/Config/generalFunction';
@@ -38,13 +40,14 @@ export default function DataAnalytics() {
                         allowReorder={true}
                         onupdatefiles={setFiles}
                         labelIdle='Drop CSV here or <span class="filepond--label-action">browse</span>'
-                        server="http://localhost:8000/api/data/analyze"
-                        onprocessfile={async (error, file) => {
-                            const chatId = await generalFunction.getChatId();
-                            file.setMetadata("chatId", chatId);
+                        server="http://localhost:8000/api/upload/document/data/analysis"
+                        onprocessfile={(error, file) => {
                             console.log("file name:", file.filename);
-                            console.log("chat id:", file.getMetadata("chatId"));
                             setUploaded(true);
+                        }}
+                        fileRenameFunction={async (file) => {
+                            const chatId = await generalFunction.getChatId();
+                            return `${file.name}_${chatId}`;
                         }}
                         className="w-full"
                     />

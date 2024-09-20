@@ -5,6 +5,8 @@ import  Table from '../Common/CommonComponents/Table'
 import PopUp from '../Common/CommonComponents/PopUp'
 import DescriptionArea from '../Common/CommonComponents/DescriptionArea'
 import { useParams } from 'react-router-dom';
+import IconEdit from '../Common/CommonComponents/IconEdit';
+import IconDelete from '../Common/CommonComponents/IconDelete';
 
 export default function ProjectPage() {
   const project_fields = [
@@ -210,10 +212,23 @@ export default function ProjectPage() {
     setRowIndex(-1);
   };
 
+  // Function for deleting a task
+
+  const handleDelete = (row)=> {
+    generalFunction.deleteTask(row)
+    setAllTasks(previousTasks=> previousTasks.filter(task=> task.id !== row.id))
+  }
+
   const actions = [
     <Button
-    label="Edit"
+    label={<IconEdit/>}
     handleFunction = {openEdit}
+    actionButton={true}
+    />,
+    <Button
+    label={<IconDelete/>}
+    handleFunction = {handleDelete}
+    actionButton={true}
     />,
   ];
 

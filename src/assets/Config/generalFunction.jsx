@@ -44,7 +44,8 @@ export const generalFunction = {
         localStorage.removeItem("varaCompanyId");
         localStorage.removeItem("varaUserId");
         localStorage.removeItem("messages");
-
+        localStorage.removeItem("toastShown")
+        localStorage.removeItem("allNotification")
         updateSupabaseClient(null);
     },
 
@@ -63,7 +64,7 @@ export const generalFunction = {
     },
 
     getCompanyId: async () => {
-        let company_id = localStorage.getItem("varaCompanyId");
+        let company_id = localStorage.getItem("varaCompanyId");        
         if (!company_id) {
             await generalFunction.setCompanyId();
             company_id = localStorage.getItem("varaCompanyId");
@@ -255,14 +256,15 @@ export const generalFunction = {
 
     // Function to get Vara's company id from Quest_id
     getCompanyVaraID: async (quest_company_id) => {
-        try {
+
+        try {            
             const { data, error } = await supabase
               .from('company')
               .select('id')
               .eq('company_id', quest_company_id);
             if (error) {
                 throw error;
-            }
+            }            
             return data;
         } catch (error) {
             console.error("Error fetching table row:", error);
@@ -310,6 +312,21 @@ export const generalFunction = {
         }
     },
 
+    deleteProject: async(rowData)=> {
+        const company_id = await generalFunction.getCompanyId()
+        
+        const {data, error} = await supabase
+        .from('project_management')
+        .delete()
+        .eq('id', rowData.id)
+        .eq('company_id', company_id)
+
+        if(error){
+            throw error
+        }
+        
+    },
+
     editTask: async (rowData) => {
         const company_id = await generalFunction.getCompanyId()
         const {data, error} = await supabase
@@ -327,6 +344,20 @@ export const generalFunction = {
 
         if (error) {
             throw error;
+        }
+    },
+
+    deleteTask: async (rowData)=> {
+
+        const company_id = await generalFunction.getCompanyId()
+        const {data, error} = await supabase
+        .from('task_management')
+        .delete()
+        .eq('id', rowData.id)
+        .eq('company_id', company_id)
+        
+        if(error){
+            throw error
         }
     },
 

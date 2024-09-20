@@ -3,6 +3,7 @@ import { ThemeContext } from "../Common/AppContext";
 import { supabase } from '../../supabaseClient';
 import { generalFunction } from '../../assets/Config/generalFunction';
 import Button from "../Common/CommonComponents/Button";
+import ToastPop from "../Common/CommonComponents/ToastPop";
 
 
 const ManageFacilities = () => {
@@ -14,6 +15,9 @@ const ManageFacilities = () => {
   const [editFacility, setEditFacility] = useState({ name: '', type: '', address: '', processes: [''] });
   const [isDeletePopupOpen, setIsDeletePopupOpen] = useState(false);
   const [facilityToDelete, setFacilityToDelete] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastKey, setToastKey] = useState(0); 
+  const [toastMessage, setToastMessage] = useState('')
 
   useEffect(() => {
     fetchFacilities();
@@ -68,8 +72,9 @@ const ManageFacilities = () => {
 
   //Adding new facility to the database
   const handleAddFacility = async () => {
-    const company_id = await generalFunction.getCompanyId();
 
+    const company_id = await generalFunction.getCompanyId();
+    
     const { data: facilityData, error: facilityError } = await supabase
       .from('facility')
       .insert([{
@@ -79,7 +84,7 @@ const ManageFacilities = () => {
         is_active: true,
         company_id : company_id,
       }])
-      .select('*');
+      .select('*');      
 
     if (facilityError) {
       console.error(facilityError);
@@ -106,9 +111,31 @@ const ManageFacilities = () => {
     await fetchFacilities();
     resetNewFacility();
     setIsPopupOpen(false);
+
+    setShowToast(true);
+    setToastMessage(`A new facility ${newFacility.name} has been added!`) 
+    setToastKey(prevKey => prevKey + 1);
+
+
+    const existingNotifications = JSON.parse(localStorage.getItem('allNotification')) || [];
+    // Create a new notification
+    const newNotification = {
+        facilityName: newFacility.name,
+        dateAdded: new Date().toLocaleString(), // Use toLocaleString for full date and time
+        action: 'addFacility'
+    };
+
+    
+    // Add the new notification to the existing ones
+    existingNotifications.push(newNotification);
+
+    // Store updated notifications back to localStorage
+    localStorage.setItem('allNotification', JSON.stringify(existingNotifications));
+  
   };
 
   //Updating existing facility data in the database
+  
   const handleEditFacility = async () => {
     const { data: facilityData, error: facilityError } = await supabase
       .from('facility')
@@ -197,6 +224,25 @@ const ManageFacilities = () => {
       await fetchFacilities();
       setIsDeletePopupOpen(false);
       setFacilityToDelete(null);
+
+    setShowToast(true);
+    setToastMessage(`An existing facility has been deleted !`) 
+    setToastKey(prevKey => prevKey + 1);
+
+      const existingNotifications = JSON.parse(localStorage.getItem('allNotification')) || [];
+
+    // Create a new notification
+    const newNotification = {
+        // facilityName: newFacility.name,
+        dateAdded: new Date().toLocaleString(), // Use toLocaleString for full date and time
+        action: 'deleteFacility'
+    };
+
+    // Add the new notification to the existing ones
+    existingNotifications.push(newNotification);
+
+    // Store updated notifications back to localStorage
+    localStorage.setItem('allNotification', JSON.stringify(existingNotifications));
     }
   };
 
@@ -359,6 +405,7 @@ const ManageFacilities = () => {
           handleClose={() => setIsPopupOpen(false)}
         />
       )}
+      {showToast && <ToastPop key={toastKey} message={toastMessage} />}
     </div>
   );
 };

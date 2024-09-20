@@ -6,6 +6,8 @@ export default function LoginWrapper({ children }) {
     const { appConfig, theme, bgColors, contentConfig } =
         useContext(ThemeContext);
 
+        console.log(children);
+        
     return (
         <div className="flex h-screen">
             <div

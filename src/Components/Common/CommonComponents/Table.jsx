@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import IconSearch from "./IconSearch";
 import Button from "./Button";
 import PdfViewer from './PdfViewer';
+import * as XLSX from 'xlsx';
 
 const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions = false, actions = [], rowsPerPage = 10, enablePagination = false, searchableColumn, importButton = false, handleOpenImport, importType = '' }) => {
   fields = fields.filter(field => !field.no_show);
@@ -53,6 +54,28 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
     return `${month}/${day}/${year}`;
   };
 
+  const exportToExcel = () => {
+
+    const wsData = [
+      fields.map(field => field.label), // Header row
+      ...paginatedData.map(row => 
+        fields.map(field => 
+          field.type === 'date' ? formatDate(row[field.id]) 
+          : field.type === 'url' && row[field.id] ? row[field.id]
+          : row[field.id]
+        )
+      )
+    ];
+
+    // Create a worksheet and a workbook
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+    // Write to file and trigger download
+    XLSX.writeFile(wb, "table-data-download.xlsx");
+};
+
   return (
     <div className="flex flex-col items-center text-sm bg-white">
       <div className="w-[90%] margin-[auto]"> 
@@ -72,10 +95,15 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
           </div>
         )}
         {importButton && (
-          <div className="relative w-[100%] flex justify-end">
+          <div className="relative w-[100%] flex justify-end gap-3">
             <Button
             label={`Import ${importType}`}
             handleFunction={handleOpenImport}
+            />
+
+<Button
+            label={`Download Excel`}
+            handleFunction={exportToExcel}
             />
           </div>
         )}
@@ -123,12 +151,13 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
                     </td>
                   ))}
                   {hasActions && (
-                    <td className={`px-1 py-4 text-right ${isLastRow ? '' : 'border-b'}`}>
+                    <td style={{display:'flex'}} className={`px-1 py-4 text-right ${isLastRow ? '' : 'border-b'}`}>
                       {actions.map((ActionButton, actionIndex) => (
                         <span className="ml-2" key={actionIndex} onClick={(e) => e.stopPropagation()}>
                           {React.cloneElement(ActionButton, { handleFunction: () => ActionButton.props.handleFunction(row, index, realIndex) })}
                         </span>
                       ))} 
+                      
                     </td>
                   )}
                 </tr>

@@ -5,6 +5,8 @@ import { generalFunction } from '../../assets/Config/generalFunction';
 import Button from '../Common/CommonComponents/Button';
 import {Link} from 'react-router-dom';
 import { userPermissions } from '../../assets/Config/accessControl';
+import * as XLSX from 'xlsx';
+import ToastPop from '../Common/CommonComponents/ToastPop';
 
 export default function Parameteroverview() {
     const [tableData, setTableData] = useState([]);
@@ -24,6 +26,12 @@ export default function Parameteroverview() {
     const [selectedPopupProcess, setSelectedPopupProcess] = useState('');
     const [hasPermission, setHasPermission] = useState(false);
 
+    const [showToast, setShowToast] = useState(false);
+
+    const lsData = localStorage.getItem('adminDetails');
+    const adminDetails = lsData ? JSON.parse(lsData) : {};
+    const userId = adminDetails.userId; // Access userId from the parsed object
+    
 
     useEffect(() => {
         fetchMeasurement();
@@ -34,7 +42,30 @@ export default function Parameteroverview() {
         };
 
         checkPermission();
-    }, []);
+        
+        const toastShown = localStorage.getItem('toastShown');
+        if (userId && !toastShown) {
+            setShowToast(true);
+            localStorage.setItem('toastShown', 'true'); // Set flag to prevent future shows    
+            
+            // saving detials in local storage for login notification
+
+            const existingNotifications = JSON.parse(localStorage.getItem('allNotification')) || [];
+
+            // Create a new notification
+            const newNotification = {
+                // facilityName: newFacility.name,
+                dateAdded: new Date().toLocaleString(), // Use toLocaleString for full date and time
+                action: 'loggedIn'
+            };
+        
+            // Add the new notification to the existing ones
+            existingNotifications.push(newNotification);
+        
+            // Store updated notifications back to localStorage
+            localStorage.setItem('allNotification', JSON.stringify(existingNotifications));
+        }
+    }, [userId]);
 
     async function fetchFacilities() {
         try {
@@ -273,8 +304,62 @@ export default function Parameteroverview() {
             });
         });
 
+        const exportToExcel = () => {
+            const worksheetData = [];
+    
+            // Add table headers
+            const headers = ['Parameter'];
+            const subHeaders = ['']; // Empty to align with 'Parameter' column
+    
+            facilities.forEach(facility => {
+                const processCount = Object.keys(tableData[facility].processes).length;
+                headers.push(facility); // Facility name
+                // Add empty columns to align the facility header with the process columns
+                for (let i = 1; i < processCount; i++) {
+                    headers.push(''); // Empty to span across processes
+                }
+    
+                // Add process names below the facility header
+                Object.keys(tableData[facility].processes).forEach(process => {
+                    subHeaders.push(process);
+                });
+            });
+    
+            worksheetData.push(headers);  // Facility row
+            worksheetData.push(subHeaders);  // Processes row
+    
+            // Add table rows (Parameter and corresponding values)
+            Array.from(parameters.entries()).forEach(([parameter, para_id]) => {
+                const row = [parameter];
+                facilities.forEach(facility => {
+                    Object.keys(tableData[facility].processes).forEach(process => {
+                        const cellValue = tableData[facility].processes[process].parameters[parameter]?.total_value || '-';
+                        row.push(cellValue);
+                    });
+                });
+                worksheetData.push(row);
+            });
+    
+            // Create a worksheet and workbook
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Table Data");
+    
+            // Download Excel file
+            XLSX.writeFile(wb, 'table_data_neww.xlsx');
+        };
+
         return (
-            <table className="metrics-table">
+            
+            <div>
+                <div className='flex justify-end mr-4 relative bottom-[60px]'>
+                <Button
+                            label="Download Excel"
+                            handleFunction={exportToExcel}
+                            additionalClasses="bg-red-500"
+                        />
+                </div>
+                <table className="metrics-table">
                 <thead>
                     <tr>
                         <th>Parameter</th>
@@ -322,6 +407,7 @@ export default function Parameteroverview() {
                 ))}
                 </tbody>
             </table>
+            </div>
         );
     };
 
@@ -527,6 +613,7 @@ export default function Parameteroverview() {
                     )}
                 </div>
             </div>
+            {showToast && <ToastPop message="You are now logged in !"/>}
         </div>
     );
 }

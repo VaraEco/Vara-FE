@@ -17,6 +17,7 @@ import { SettingsSvg } from "./SideBarSvg";
 import { ProviderConfig } from "./ProviderConfig";
 import Settings from "../Settings/Settings";
 import { userPermissions } from "../../assets/Config/accessControl";
+import NotificationFeed from "./NotificationFeed";
 
 export default function DashboardWrapper({ children, selectdRoute }) {
     const [openPopup, setOpenPopup] = useState(false);
@@ -210,6 +211,13 @@ export default function DashboardWrapper({ children, selectdRoute }) {
                                     <p>Upgrade</p>
                                 </Link>
                             </li> */}
+
+                            <li>
+                                <Link className="s_nav_menu_link">
+                                <NotificationFeed/>
+                                <p>Notifications</p>
+                                </Link>
+                            </li>
 
                             <li>
                                 <Link className="s_nav_menu_link" to="/settings">

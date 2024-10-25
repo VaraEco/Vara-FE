@@ -3,6 +3,8 @@ import { generalFunction } from '../../assets/Config/generalFunction'
 import  Button from '../Common/CommonComponents/Button'
 import  Table from '../Common/CommonComponents/Table'
 import PopUp from '../Common/CommonComponents/PopUp'
+import IconEdit from '../Common/CommonComponents/IconEdit';
+import IconDelete from '../Common/CommonComponents/IconDelete';
 
 export default function ProjectManagement() {
   const fields = [
@@ -83,12 +85,12 @@ export default function ProjectManagement() {
   };
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target;    
     setProject((prevData) => ({
       ...prevData,
       project_id: projectTracker,
       [name]: value,
-    }));
+    }));    
   };
 
   const handleAddRow = () => {
@@ -106,14 +108,26 @@ export default function ProjectManagement() {
 // functions for edit button
 
 const openEdit = (row, index) => {
+  console.log(row);
+  
   setValidationErrors({});
   setEditProject(row);
   setRowIndex(index);
   setEditOpen(true);
 }
 
+// function for deleting a projects
+
+const handleDelete = (row)=>{
+  generalFunction.deleteProject(row)
+  setAllProjects(previousProject=> previousProject.filter(project=> project.id !== row.id))
+}
+
+
 const handleEditInput = (e) => {
   const { name, value } = e.target;
+  console.log(name, value);
+  
   setEditProject((prevData) => ({
       ...prevData,
       [name]: value,
@@ -143,8 +157,14 @@ const handleCloseEdit = () => {
 
   const actions = [
     <Button
-    label="Edit"
+    label={<IconEdit/>}
     handleFunction = {openEdit}
+    actionButton={true}
+    />,
+    <Button
+    label={<IconDelete/>}
+    handleFunction = {handleDelete}
+    actionButton={true}
     />,
   ];
 

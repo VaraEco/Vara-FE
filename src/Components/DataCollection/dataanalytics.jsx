@@ -22,13 +22,49 @@ import IconUpload from '../Common/CommonComponents/IconUpload.jsx';
 import IconMessage from '../Common/CommonComponents/IconMessage.jsx';
 import IconChart from '../Common/CommonComponents/IconChart.jsx';
 import ChatBot from '../Common/CommonComponents/ChatBox.jsx';
+import Papa from 'papaparse'
 
 export default function DataAnalytics() {
 
     const [files, setFiles] = useState([]);
     const [uploaded, setUploaded] = useState(false);
-    const storage_api = process.env.REACT_APP_BACKEND_DOC_UPLOAD_API;
-    console.log("Storage api is: ", storage_api)
+    const storage_api = ""
+    // console.log("Storage api is: ", storage_api)
+    const [parsedData, setParsedData] = useState([])
+
+    const handleUpdateFiles = (fileItems) => {
+        const updatedFiles = fileItems.map(fileItem => fileItem.file);
+        setFiles(updatedFiles);
+    
+        updatedFiles.forEach(file => {
+          if (file.type === "text/csv") {
+            readCSVFile(file);
+          }
+        });
+      };
+
+      const readCSVFile = (file) => {
+        const reader = new FileReader();
+    
+        reader.onload = (event) => {
+          const csvData = event.target.result;
+    
+
+          Papa.parse(csvData, {
+            
+            header: true, 
+            complete: (results) => {
+              console.log('Parsed CSV Data:', results.data);
+              setParsedData(results.data); 
+            },
+            error: (error) => {
+              console.error('Error parsing CSV:', error);
+            }
+          });
+        };
+    
+        reader.readAsText(file); // Read the file as text
+      };
 
     return (
         <div className="flex flex-col justify-center overflow-hidden p-6 h-screen">
@@ -40,11 +76,10 @@ export default function DataAnalytics() {
                     <FilePond
                         files={files}
                         allowReorder={true}
-                        onupdatefiles={setFiles}
+                        onupdatefiles={handleUpdateFiles}
                         labelIdle='Drop CSV here or <span class="filepond--label-action">browse</span>'
                         server={storage_api}
                         onprocessfile={(error, file) => {
-                            console.log("file name:", file.filename);
                             setUploaded(true);
                         }}
                         fileRenameFunction={async (file) => {
@@ -76,7 +111,7 @@ export default function DataAnalytics() {
             </div>
             )}
             {uploaded && (
-                <ChatBot/>
+                <ChatBot allData={parsedData}/>
             )}
         </div>
     );

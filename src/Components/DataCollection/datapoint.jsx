@@ -339,7 +339,7 @@ export default function DataPoint() {
                         { id: 'log_date', label: 'Log Date', type: 'date' },
                         { id: 'value', label: 'Value', type: 'text' },
                         { id: 'log_unit', label: 'Unit', type: 'text'},
-                        { id: 'evidenceFile', label: 'Evidence', type: 'file' },
+                        { id: 'evidenceFile', label: 'Upload Evidence', type: 'file' },
                     ]}
                     newRowData={newEntry}
                     handleInputChange={handleInputChange}

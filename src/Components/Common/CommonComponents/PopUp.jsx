@@ -16,10 +16,15 @@ const PopUp = ({
   button1Label = "Cancel",
   button2Label = "Save",
   validationErrors,
+  setFileName,
+  newEntry,
+  setNewEntry,
+  handleRemoveFile,
+  fileName
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState("");
-
+  
   const handleViewClick = (pdfUrl, e) => {
     e.preventDefault();
     setSelectedPdfUrl(pdfUrl);
@@ -32,6 +37,7 @@ const PopUp = ({
   };
 
   const formatDateForInput = (dateString) => {
+    
     if (dateString.includes("/")) {
       const [month, day, year] = dateString.split("/");
       return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
@@ -148,13 +154,16 @@ const PopUp = ({
                   ))}
                 </select>
               ) : field.type === "file" ? (
-                <input
+                <div>
+                  <input
                   type="file"
                   id={field.id}
                   name={field.id}
                   onChange={handleFileChange}
                   className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full cursor-pointer bg-blue-500 text-white px-4 py-2 hover:bg-blue-600"
                 />
+                {fileName && <p>{fileName} <span onClick={handleRemoveFile} style={{color:'red', marginLeft:'10px'}}> &times; </span></p>}
+                </div>
               ) : field.id === "status" ? (
                 <select onChange={handleInputChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" name="status" id="">
                                     <option value="">Change Status</option>

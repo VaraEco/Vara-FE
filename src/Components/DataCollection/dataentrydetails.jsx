@@ -11,6 +11,7 @@ export default function DataEntryDetails() {
     const [userDataEntry, setUserDataEntry] = useState([]);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [newEntry, setNewEntry] = useState({ log_date: '', value: '', evidenceFile: null, evidence_url: '', log_unit: ''});
+    const [fileName, setFileName] = useState('')
 
     useEffect(() => {
         fetchDataEntry();
@@ -50,13 +51,29 @@ export default function DataEntryDetails() {
     };
 
     const handleFileChange = (e) => {
+        const fileName = e.target.files[0]
         const file = e.target.files[0];
         setNewEntry(prevData => ({
             ...prevData,
             evidenceFile: file,
         }));
 
+        setFileName(fileName.name)
+
     };
+
+    function handleRemoveFile(){
+        setFileName('')
+        document.getElementById("evidenceFile").value = ''
+    
+        setNewEntry(prevData => ({
+          ...prevData,
+          evidenceFile: null,
+      }));
+      
+        // console.log(newRowData);
+        
+      }
 
     const handleSaveNewEntry = async () => {
         try {
@@ -67,8 +84,12 @@ export default function DataEntryDetails() {
 
             await generalFunction.createUserDataEntry(userId, processId, parameterId, data_collection_id, newEntry);
             setIsPopupOpen(false);
-
             fetchDataEntry();
+
+            // reseting the fields once submit button is clicked
+            
+            setNewEntry({ log_date: '', value: '', evidenceFile: null, evidence_url: '', log_unit: ''})
+            setFileName('')
         } catch (error) {
             console.log("Error saving new entry: ", error);
         }
@@ -156,6 +177,11 @@ export default function DataEntryDetails() {
                     button1Label="Close"
                     button2Label="Submit"
                     validationErrors={{}}
+                    fileName={fileName}
+                    setFileName={setFileName}
+                    newEntry={newEntry}
+                    setNewEntry={setNewEntry}
+                    handleRemoveFile={handleRemoveFile}
                 />
             )}
         </div>

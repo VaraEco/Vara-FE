@@ -51,12 +51,15 @@ export const generalFunction = {
 
     createUrl: (apiString) => {
         const url = `${mainConfig.QUEST_BASE_URL}${apiString}`;
+        console.log(url);
+        
         const headers = {
             apiKey: mainConfig.QUEST_API_KEY,
             userId: generalFunction.getUserId(),
             token: generalFunction.getUserToken()
         };
     
+        console.log(headers);
         return {
             url,
             headers,
@@ -293,6 +296,33 @@ export const generalFunction = {
             throw error;
         }
     },
+
+    removeTableRow: async (table, newRowData) => {
+        const { data, error } = await supabase
+              .from(table)
+              .delete()
+              .match(newRowData)
+        if (error) {
+            throw error;
+        }
+    },
+
+    updateUserAccessData: async (userId, updatedData) => {
+        try {
+          const { data, error } = await supabase
+            .from('user_data_access') // Your Supabase table name
+            .update(updatedData)
+            .eq('id', userId) // Ensure you update the correct row
+            .single(); // Assuming you want to return a single updated row
+      
+          if (error) throw error;
+      
+          return data; // Return the updated data if needed
+        } catch (error) {
+          console.error('Error updating user access data:', error);
+          throw error; // Re-throw the error for handling elsewhere
+        }
+      },
 
     editProject: async (rowData) => {
         const company_id = await generalFunction.getCompanyId()

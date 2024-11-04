@@ -16,6 +16,7 @@ export default function DataPoint() {
     const [newEntry, setNewEntry] = useState({ log_id: '', log_date: '', value: '', evidenceFile: null, evidence_url: '', ai_extracted_value: '', log_unit: ''});
     const [AllValues, setAllValues] = useState([]);
 
+    const [fileName, setFileName] = useState('')
 
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [deleteRowData, setDeleteRowData] = useState({});
@@ -87,7 +88,9 @@ export default function DataPoint() {
         }
     }, [OCR_Feature]);
 
-    const formatDateDisplay = (dateString) => {        
+    const formatDateDisplay = (dateString) => {   
+        
+             
         if (!dateString) return '';
         const date = new Date(dateString);
         const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // getUTCMonth() returns month index starting from 0
@@ -107,6 +110,8 @@ export default function DataPoint() {
     }
 
     const handleInputChange = (e) => {
+        console.log('log input change', e.target.value);
+        
         const { name, value, type } = e.target;
         const formattedValue = type === 'date' ? formatDateDisplay(value) : value;
         setNewEntry(prevData => ({
@@ -116,13 +121,27 @@ export default function DataPoint() {
       };
 
     const handleFileChange = (e) => {
+        const fileName = e.target.files[0]
         const file = e.target.files[0];
         setNewEntry(prevData => ({
             ...prevData,
             evidenceFile: file,
         }));
-
+        setFileName(fileName.name)
     };
+
+     function handleRemoveFile(){
+    setFileName('')
+    document.getElementById("evidenceFile").value = ''
+
+    setNewEntry(prevData => ({
+      ...prevData,
+      evidenceFile: null,
+  }));
+  
+    // console.log(newRowData);
+    
+  }
 
     const aiExtractedFlow = async (log_id) => {
         const file_name = `${Date.now()}_${newEntry.evidenceFile.name}`;
@@ -152,6 +171,8 @@ export default function DataPoint() {
     }
 
     const handleSaveNewEntry = async () => {
+    
+        
         try {
             const { log_id, evidenceUrl}  = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
             const evidence_url = evidenceUrl ? await getSignedUrl(evidenceUrl) : null;
@@ -165,6 +186,11 @@ export default function DataPoint() {
             if (OCR_Feature && newEntry.evidenceFile) {
                 aiExtractedFlow(log_id);
             }
+
+             // reseting the fields once submit button is clicked
+             
+            setNewEntry({ log_date: '', value: '', evidenceFile: null, evidence_url: '', log_unit: ''})
+            setFileName('')
             setIsPopupOpen(false);
         } catch (error) {
             console.log("Error saving new entry: ", error);
@@ -185,10 +211,22 @@ export default function DataPoint() {
       };
     
       const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString();
+
+        // console.log(dateString);
+        
+        // return new Date(dateString).toLocaleDateString();
+
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // getUTCMonth() returns month index starting from 0
+        const day = date.getUTCDate().toString().padStart(2, '0');
+        const year = date.getUTCFullYear();
+        return `${month}/${day}/${year}`;
       };
 
       const handleAddImport = async (rowData) => {
+        console.log('row-data', rowData);
+        
         try {
             const imported_entry = { 
                 log_date: formatDate(rowData.log_date),
@@ -207,6 +245,8 @@ export default function DataPoint() {
       };
 
       const onImportSubmit = async (data) => {
+        console.log(data);
+        
         const defaultValues = {
             value: '',
             log_date: '',
@@ -233,10 +273,15 @@ export default function DataPoint() {
     }
 
     const handleEditInput = async (e) => {
+        console.log('input change,', e.target.value);
+        
         const { name, value } = e.target;
+
+        const formattedValue = name === 'log_date' ? formatDate(value) : value; // Format date here
+
         setEditRowData((prevData) => ({
           ...prevData,
-          [name]: value,
+          [name]: formattedValue,
         }));    
     };
 
@@ -249,6 +294,7 @@ export default function DataPoint() {
     };
 
     async function handleEditSubmit() {
+        console.log('edited clicked');
         const unsigned_evidence_url = await generalFunction.editDataPoint(rowEditData);
         if (unsigned_evidence_url) {
             const evidence_url = await getSignedUrl(unsigned_evidence_url);
@@ -348,7 +394,10 @@ export default function DataPoint() {
                     handleSave={handleSaveNewEntry}
                     button1Label="Close"
                     button2Label="Submit"
+                    fileName={fileName}
+                    setFileName={setFileName}
                     validationErrors={{}}
+                    handleRemoveFile={handleRemoveFile}
                 />
             )}
             {isDeleteOpen && (
@@ -380,6 +429,11 @@ export default function DataPoint() {
                 onClose={onImportClose}
                 onSubmit={onImportSubmit}
                 fields={importFields}
+                translations={{
+                    validationStep: {
+                        nextButtonTitle: "Select All And Confirm"
+                    }
+                }}
                 />
             </div>
         </div>

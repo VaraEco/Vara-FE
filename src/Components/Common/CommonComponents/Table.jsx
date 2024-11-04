@@ -46,12 +46,34 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
   const paginatedData = enablePagination ? filteredData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage) : filteredData;
 
   const formatDate = (dateString) => {
+
+    console.log('compl-fram', dateString);
+    
+    // if (!dateString) return '';
+    // const date = new Date(dateString);
+    // const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // getUTCMonth() returns month index starting from 0
+    // const day = date.getUTCDate().toString().padStart(2, '0');
+    // const year = date.getUTCFullYear();
+    // console.log(`${month}/${day}/${year}`);
+    
+    // return `${month}/${day}/${year}`;
+
     if (!dateString) return '';
+
+    // Create a new Date object directly from the ISO string
     const date = new Date(dateString);
-    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0'); // getUTCMonth() returns month index starting from 0
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const year = date.getUTCFullYear();
-    return `${month}/${day}/${year}`;
+    
+    // Check for invalid date
+    if (isNaN(date)) {
+        console.error(`Invalid Date object: ${dateString}`);
+        return ''; // Handle invalid date
+    }
+
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); 
+    const day = date.getDate().toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${month}/${day}/${year}`; // Format as MM/DD/YYYY
   };
 
   const exportToExcel = () => {

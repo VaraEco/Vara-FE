@@ -3,7 +3,7 @@ import axios from "axios";
 
 const S3_api = process.env.REACT_APP_BACKEND_S3_API;
 const TextRact_api = process.env.REACT_APP_BACKEND_TEXTRACT_API;
-const chatbot_query_api = 'https://vara.ploomberapp.io/api/data/analyze';
+const chatbot_query_api = process.env.REACT_APP_BACKEND_CHATBOT_QUERY_API;
 
 export const apiClient = {
 
@@ -48,10 +48,10 @@ export const apiClient = {
     },
 
     sendUserQuery: async (userInput, userId) => {
-        console.log("chatbot api is", 'https://vara.ploomberapp.io/api/data/analyze')
+        console.log("chatbot api is", chatbot_query_api)
         try {
             const response = await axios.post(
-                'https://vara.ploomberapp.io/api/data/analyze',
+                chatbot_query_api,
                 {
                     query: userInput,
                     chatId: userId

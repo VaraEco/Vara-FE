@@ -21,7 +21,6 @@ const AdminComponent = () => {
     const [roleData, setRoleData] = useState();
     const ownerDetails = JSON.parse(localStorage.getItem("adminDetails"));
 
-
     useEffect(() => {
         const getAdmins = async () => {
             generalFunction.showLoader();
@@ -37,7 +36,9 @@ const AdminComponent = () => {
                     headers: {...request.headers, apiKey: ownerDetails?.apiKey},
                 }
             );
-            let filteredData = data.data.filter((user) => !mainConfig.ALLOWED_ADMIN.includes(user.emails[0]));
+            console.log('data-data',data.data);
+            
+            let filteredData = data.data.filter((user) => !mainConfig.ALLOWED_ADMIN.includes(user.emails[0]) && user.isActive);
             setAdminData(filteredData);
             setFilterData(filteredData);
             generalFunction.hideLoader();
@@ -51,7 +52,7 @@ const AdminComponent = () => {
             return user.name.toLowerCase().includes(search.toLowerCase());
         });
         setFilterData(data);
-    }, [search]);
+    }, [search])
 
     const deleteAdmin = async (userId) => {
         try {
@@ -81,8 +82,9 @@ const AdminComponent = () => {
                     });
 
                     let removedUser = adminData?.filter((user) => user.userId == userId);
-                    console.log(removedUser)
+                    console.log('Before filtering:', removedUser); // Check current state
                     const data = adminData?.filter((user) => user.userId != userId);
+                    console.log('After filtering:', data); // Check filtered data
                     setAdminData(data);
 
                     //////////////////////////

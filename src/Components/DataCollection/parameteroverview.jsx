@@ -201,14 +201,38 @@ export default function Parameteroverview() {
         fetchProcessParameterData(parameterProcessData[0]?.parameter_id);
     }
 
-    async function deleteProcessParameterMapping(mappingId) {
-        const { error } = await supabase
+    async function deleteProcessParameterMapping(mapping,mappingId) {
+        
+        console.log(mapping);
+
+        const {error: parameter_log_error} = await supabase
+        .from('parameter_log')
+        .delete()
+        .eq('process_id',mapping.process_id)
+        .eq('para_id',mapping.parameter_id)
+
+        if(parameter_log_error){
+            console.log(parameter_log_error);
+            return
+        }
+
+        const {error: data_collection_point_error} = await supabase
+        .from('data_collection_points')
+        .delete()
+        .eq('process_facility_mapping_id', mapping.id)
+
+        if(data_collection_point_error){
+            console.log(data_collection_point_error);
+            return
+        }
+
+        const { error: parameter_process_mapping_error } = await supabase
             .from('parameter_process_mapping')
             .delete()
             .eq('id', mappingId);
 
-        if (error) {
-            console.error(error);
+        if (parameter_process_mapping_error) {
+            console.error(parameter_process_mapping_error);
             return;
         }
 
@@ -554,7 +578,7 @@ export default function Parameteroverview() {
                                                 <td className="border border-gray-300">
                                                     <Button
                                                         label="Delete"
-                                                        handleFunction={() => deleteProcessParameterMapping(mapping.id)}
+                                                        handleFunction={() => deleteProcessParameterMapping(mapping, mapping.id)}
                                                         additionalClasses="bg-red-500"
                                                     />
                                                 </td>

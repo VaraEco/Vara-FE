@@ -43,6 +43,8 @@ export default function ManageUsers() {
   const roles = ["OWNER", "ADMIN", "TEAM MANAGER", "FIELD MANAGER"];
 
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [isLoading, setIsLoading] = useState(false)
+
 
   useEffect(() => {
     fetchUsers();
@@ -241,7 +243,7 @@ export default function ManageUsers() {
   const handleButtonClick = async (user, selectedDataCollectionPoint, selectedProcess ,selectedParameter) => {
       
     setTimeout(() => {
-            
+      setIsLoading(true)
       axios
       .post(`${mainConfig.WHATSAPP_BOT_API_BASE_URL}/api/setup_whatsapp`, {
         phone_number: phoneNumber,
@@ -250,6 +252,7 @@ export default function ManageUsers() {
         para_id: selectedParameter
       })
       .then(function (res) {
+        setIsLoading(false)
         alert(res.data.message);
         const whatsappUrl = `${mainConfig.TWILIO_WHATSAPP}?text=${encodeURIComponent(
           mainConfig.WHATSAPP_JOINING_CODE
@@ -260,6 +263,10 @@ export default function ManageUsers() {
         console.log(err);
       });
     }, 2000);
+  }
+
+  if(isLoading){
+    return <span style={{marginLeft: '45%', marginTop:'30vh'}} className="loader"></span>
   }
 
   const handleDeleteRow = async(det)=> {

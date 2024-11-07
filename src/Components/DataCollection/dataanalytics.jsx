@@ -22,13 +22,14 @@ import IconUpload from '../Common/CommonComponents/IconUpload.jsx';
 import IconMessage from '../Common/CommonComponents/IconMessage.jsx';
 import IconChart from '../Common/CommonComponents/IconChart.jsx';
 import ChatBot from '../Common/CommonComponents/ChatBox.jsx';
+import { mainConfig } from "../../assets/Config/appConfig";
 import Papa from 'papaparse'
 
 export default function DataAnalytics() {
 
     const [files, setFiles] = useState([]);
     const [uploaded, setUploaded] = useState(false);
-    const storage_api = process.env.REACT_APP_BACKEND_DOC_UPLOAD_API
+    const storage_api = mainConfig.REACT_APP_BACKEND_DOC_UPLOAD_API
     console.log("Storage api is: ", storage_api)
     const [parsedData, setParsedData] = useState([])
 

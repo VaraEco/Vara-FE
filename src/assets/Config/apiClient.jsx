@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import axios from "axios";
+import { mainConfig } from "../../assets/Config/appConfig";
 
-const S3_api = process.env.REACT_APP_BACKEND_S3_API;
-const TextRact_api = process.env.REACT_APP_BACKEND_TEXTRACT_API;
-const chatbot_query_api = process.env.REACT_APP_BACKEND_CHATBOT_QUERY_API;
+const S3_api = mainConfig.REACT_APP_BACKEND_S3_API;
+const TextRact_api = mainConfig.REACT_APP_BACKEND_TEXTRACT_API;
+const chatbot_query_api = mainConfig.REACT_APP_BACKEND_CHATBOT_QUERY_API;
 
 export const apiClient = {
 

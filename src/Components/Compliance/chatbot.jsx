@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './chatbot.css';
-
-const ChatBot_api = process.env.REACT_APP_BACKEND_CHATBOT_API;
+import { mainConfig } from "../../assets/Config/appConfig";
+const ChatBot_api = mainConfig.REACT_APP_BACKEND_CHATBOT_API;
 //https://vara.ploomberapp.io/api/chatbot/message/query
 
 const Chatbot = () => {

@@ -34,8 +34,8 @@ function CsvToTable({ allData }) {
 
   return (
     <div className="max-w-[100vw] overflow-x-auto overflow-y-auto">
-      <table className="text-md text-left rtl:text-right text-gray-700 dark:text-green-400">
-        <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
+      <table className="text-md text-left rtl:text-right text-gray-700 bg-white">
+        <thead className="text-xs text-gray-700 uppercase bg-gray-100">
           <tr className="text-center">
             {headers.map((headerItem, index) => (
               <th
@@ -54,7 +54,7 @@ function CsvToTable({ allData }) {
         <tbody>
           {currentRows.map((row, rowIndex) => (
             <tr
-              className={`border-b dark:bg-gray-800 text-center dark:border-gray-700 ${
+              className={`border-b bg-white-800 text-center border-white-700 ${
                 rowSelect === rowIndex ? "bg-red-400 text-white" : ""
               }`}
               key={rowIndex}

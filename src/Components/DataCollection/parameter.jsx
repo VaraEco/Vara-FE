@@ -6,6 +6,7 @@ import PopUp from '../Common/CommonComponents/PopUp';
 import Button from '../Common/CommonComponents/Button';
 import { apiClient } from '../../assets/Config/apiClient';
 import { useNavigate } from 'react-router-dom';
+import IconDelete from '../Common/CommonComponents/IconDelete';
 
 export default function Parameter() {
     const [collectionData, setCollectionData] = useState([]);
@@ -24,6 +25,7 @@ export default function Parameter() {
     const tableFields = [
         { id: 'name', label: 'Point Name' },
         { id: 'method', label: 'Method' },
+        {id: 'action', label: 'Action'}
     ];
 
     // Fetch data collection points on component mount and when parameter/process changes
@@ -238,6 +240,31 @@ export default function Parameter() {
         setNewDataCollectionPoint(prevState => ({ ...prevState, [name]: value }));
     };
 
+    const handleDeleteCollectionPoint = async (row) => {
+        console.log(row);
+
+        const {error: parameter_log_error} = await supabase
+        .from('parameter_log')
+        .delete()
+        .eq('data_collection_id', row.id)
+
+        if(parameter_log_error){
+            console.log(parameter_log_error);
+            return
+        }
+
+        const {error: data_collection_point_error} = await supabase
+        .from('data_collection_points')
+        .delete()
+        .eq('id', row.id)
+
+        if(data_collection_point_error){
+            console.log(data_collection_point_error);
+            return
+        }
+
+        fetchDataCollectionPoints()
+    }
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
             <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-4xl">
@@ -313,7 +340,12 @@ export default function Parameter() {
                                 key={field.id}
                                 className="py-3 px-4 text-gray-600 border-b border-gray-200"
                                 >
-                                {row[field.id]}
+                                {field.id==='action' ? (<button
+                                onClick={(e)=> {e.stopPropagation()
+                                    handleDeleteCollectionPoint(row)
+                                }}
+                                style={{marginLeft:'15px'}}
+                                ><IconDelete/></button>) : (row[field.id])}
                                 </td>
                             ))}
                             </tr>

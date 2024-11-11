@@ -434,6 +434,7 @@ export default function DataPoint() {
                         nextButtonTitle: "Select All And Confirm"
                     }
                 }}
+                isNavigationEnabled={true}
                 />
             </div>
         </div>

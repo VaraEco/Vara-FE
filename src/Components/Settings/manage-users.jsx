@@ -242,6 +242,8 @@ export default function ManageUsers() {
 
   const handleButtonClick = async (user, selectedDataCollectionPoint, selectedProcess ,selectedParameter) => {
       
+    console.log(selectedDataCollectionPoint, selectedProcess ,selectedParameter);
+    
     setTimeout(() => {
       setIsLoading(true)
       axios

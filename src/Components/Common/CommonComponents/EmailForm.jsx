@@ -10,6 +10,7 @@ const EmailForm = ({handleCancel, supplierEmail = false, supplierData, onSent}) 
     const [fromEmail, setFromEmail] = useState('');
     const [message, setMessage] = useState('');
     const [errors, setErrors] = useState({});
+    const [toCc, setToCc] = useState('')
 
     const validate = () => {
         const errors = {};
@@ -32,6 +33,8 @@ const EmailForm = ({handleCancel, supplierEmail = false, supplierData, onSent}) 
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        console.log(subject, name, toEmail, fromEmail, message, toCc);
+        
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -44,18 +47,19 @@ const EmailForm = ({handleCancel, supplierEmail = false, supplierData, onSent}) 
             generalFunction.createSupplierEmail(toEmail, fromEmail, date_sent, supplierData);
         }
 
-        const serviceId = 'service_f1v49vl';
-        const templateId = 'template_kbi801d';
-        const publicKey = 'BJqAtQHmSB8T5inCK';
-        const privateKey = '2UNvN5729M3b_VcF6Xwqj';
+        const serviceId = 'service_x30xlx6';
+        const templateId = 'template_pny88l2';
+        const publicKey = 'E1xHr2cBW8hczak6i';
+        const privateKey = '2OkN0CkOLCP_pH0WHEk23';
 
         const templateParams = {
             subject: subject,
             from_name: name,
-            from_email: fromEmail,
-            to_name: 'Test Name',
+            reply_to: fromEmail,
+            // to_name: 'Test Name',
             to_email: toEmail,
             message: message,
+            from_cc: toCc
         };
 
         emailjs.send(serviceId, templateId, templateParams, {publicKey: publicKey, privateKey: privateKey})
@@ -94,7 +98,7 @@ const EmailForm = ({handleCancel, supplierEmail = false, supplierData, onSent}) 
                     onChange={(e) => setName(e.target.value)}
                     className="p-1 border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
                     />
-                    <h3>From</h3>
+                    <h3>Reply To</h3>
                     {errors.fromEmail && <p className="text-red-500 text-sm">{errors.fromEmail}</p>}
                     <input
                     type="email"
@@ -103,7 +107,7 @@ const EmailForm = ({handleCancel, supplierEmail = false, supplierData, onSent}) 
                     onChange={(e) => setFromEmail(e.target.value)}
                     className="p-1 border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
                     />
-                    <h3>To</h3>
+                    <h3>Send To</h3>
                     {errors.toEmail && <p className="text-red-500 text-sm">{errors.toEmail}</p>}
                     <input
                     type="email"
@@ -112,11 +116,20 @@ const EmailForm = ({handleCancel, supplierEmail = false, supplierData, onSent}) 
                     onChange={(e) => setToEmail(e.target.value)}
                     className="p-1 border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
                     />
+                    <h3>Add CC</h3>
+                    {/* {errors.toEmail && <p className="text-red-500 text-sm">{errors.toEmail}</p>} */}
+                    <input
+                    type="email"
+                    value={toCc}
+                    placeholder="example@gmail.com"
+                    onChange={(e) => setToCc(e.target.value)}
+                    className="p-1 border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
+                    />
                     <h3>Message</h3>
                     {errors.message && <p className="text-red-500 text-sm">{errors.message}</p>}
                     <textarea
                     cols="5"
-                    rows="10"
+                    rows="6"
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     className="h-fit p-2 border border-[1px] border-solid border-[#d1d5db] focus:border-[#d1d5db] focus:border-solid focus:border-[1px] hover:border-[#d1d5db] hover:border-solid hover:border-[1px] rounded-md shadow-sm mt-1 mb-2 block w-full"

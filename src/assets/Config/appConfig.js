@@ -4,7 +4,7 @@ export const mainConfig = {
     QUEST_API_KEY: "k-758f7d33-6133-4e52-ae85-86bf1484ddd1",
     WHATSAPP_BOT_API_BASE_URL: "https://vara-be-sixe.onrender.com",
     TWILIO_WHATSAPP: "https://wa.me/+14155238886",
-    WHATSAPP_JOINING_CODE: "join useful-hunt",
+    WHATSAPP_JOINING_CODE: "join military-teeth",
     CALENDLY_LINK: "https://calendly.com/",
     GOOGLE_REDIRECT_URI: "https://quest-dashboard-starter-template-26sa.vercel.app/",
     GOOGLE_CLIENT_ID: "48459226857-eobo616j32erioo3dab9nid98fmvjom7.apps.googleusercontent.com",

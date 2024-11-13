@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import IconNextPage from "./IconNextPage";
 import IconPrevPage from "./IconPrevPage";
+import AnalyticsGraph from "../../DataCollection/AnalyticsGraph";
 
 function CsvToTable({ allData }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [columnSelect, setColumnSelect] = useState(null);
   const [rowSelect, setRowSelect] = useState(null);
+  const [selectedRowsData, setSelectedRowsData] = useState([]);
+  const [allRowsSelected, setAllRowsSelected] = useState(false); // Track the header checkbox state
   const rowsPerPage = 3;
   const headers = Object.keys(allData[0]);
   const rows = allData.slice(0);
@@ -20,8 +23,29 @@ function CsvToTable({ allData }) {
     setColumnSelect(ind);
   };
 
-  const handleRowSel = (ind) => {
-    setRowSelect(ind);
+  const handleRowSel = (rowData, rowIndex, checked) => {
+    console.log(selectedRowsData);
+    
+    if (checked) {
+      setSelectedRowsData((prevData) => [...prevData, rowData]);
+    } else {
+      setSelectedRowsData((prevData) =>
+        prevData.filter((data) => data !== rowData)
+      );
+    }
+  };
+
+  const handleHeaderCheckboxChange = (e) => {
+    const checked = e.target.checked;
+    setAllRowsSelected(checked);
+
+    if (checked) {
+      // Select all rows on this page
+      setSelectedRowsData(allData);
+    } else {
+      // Deselect all rows on this page
+      setSelectedRowsData([]);
+    }
   };
 
   const handlePageChange = (action) => {
@@ -33,16 +57,17 @@ function CsvToTable({ allData }) {
   };
 
   return (
-    <div className="max-w-[100vw] overflow-x-auto overflow-y-auto">
-      <table className="text-md text-left rtl:text-right text-gray-700 bg-white">
+    <div className="max-w-full overflow-hidden">
+      <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: "calc(100vh - 350px)" }}>
+      <table className="text-md text-left rtl:text-right text-gray-700 bg-white mb-4 w-full">
         <thead className="text-xs text-gray-700 uppercase bg-gray-100">
           <tr className="text-center">
+            <th><input type="checkbox" checked={allRowsSelected} // Controlled checkbox for header
+                onChange={handleHeaderCheckboxChange} /></th>
             {headers.map((headerItem, index) => (
               <th
                 scope="col"
-                className={`hover:bg-gray-300 hover:text-white cursor-pointer px-12 py-1 ${
-                  columnSelect === index ? "bg-gray-300 text-white" : ""
-                }`}
+                className={`hover:bg-gray-300 hover:text-white cursor-pointer px-12 py-1`}
                 key={index}
                 onClick={() => handleColumnSel(index)}
               >
@@ -54,17 +79,15 @@ function CsvToTable({ allData }) {
         <tbody>
           {currentRows.map((row, rowIndex) => (
             <tr
-              className={`border-b bg-white-800 text-center border-white-700 ${
-                rowSelect === rowIndex ? "bg-red-400 text-white" : ""
-              }`}
+              className={`border-b bg-white-800 text-center border-white-700`}
               key={rowIndex}
               onClick={() => handleRowSel(rowIndex)}
             >
+              <td className="px-9"><input type="checkbox" checked={selectedRowsData.includes(row)} onChange={(e) => handleRowSel(row, rowIndex, e.target.checked)}
+ /></td>
               {headers.map((cell, cellIndex) => (
                 <td
-                  className={`cursor-pointer text-sm px-9 py-1 ${
-                    columnSelect === cellIndex ? "bg-red-500 text-white" : ""
-                  }`}
+                  className={`cursor-pointer text-sm px-9 py-1`}
                   key={cellIndex}
                 >
                   {row[cell]}
@@ -74,6 +97,7 @@ function CsvToTable({ allData }) {
           ))}
         </tbody>
       </table>
+      </div>
 
       <div
         style={{
@@ -103,6 +127,16 @@ function CsvToTable({ allData }) {
         </div>
         </div>
       </div>
+
+      <div style={{
+            marginTop: "20px", // Ensures proper spacing between table and graph
+            paddingBottom: "30px", // Add padding at the bottom to prevent overlap
+          }}>
+        {selectedRowsData.length > 0 && (
+          <AnalyticsGraph chartData={selectedRowsData} headers={headers} />
+        )}
+      </div>
+
     </div>
   );
 }

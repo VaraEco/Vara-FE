@@ -10,6 +10,7 @@ import PopUp from '../Common/CommonComponents/PopUp';
 import DeletePopUp from '../Common/CommonComponents/DeletePopUp';
 import { ReactSpreadsheetImport } from "react-spreadsheet-import";
 import { apiClient } from '../../assets/Config/apiClient';
+import DataGraph from './DataGraph.jsx';
 
 export default function DataPoint() {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -362,6 +363,9 @@ export default function DataPoint() {
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
             <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-4xl">
                 <h1 className="text-2xl text-center mb-4">Data Source </h1>
+
+                <DataGraph chartData={AllValues}/>
+                
                 <Table
                   fields={tableFields}
                   tableData ={AllValues}
@@ -378,6 +382,9 @@ export default function DataPoint() {
                         className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                     />
                 </div>
+
+                
+
                 {isPopupOpen && (
                 <PopUp
                     title="New Data Entry"

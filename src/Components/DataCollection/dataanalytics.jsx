@@ -24,6 +24,7 @@ import IconChart from '../Common/CommonComponents/IconChart.jsx';
 import ChatBot from '../Common/CommonComponents/ChatBox.jsx';
 import { mainConfig } from "../../assets/Config/appConfig";
 import Papa from 'papaparse'
+import CsvToTable from '../Common/CommonComponents/CsvToTable.jsx';
 
 export default function DataAnalytics() {
 
@@ -112,7 +113,7 @@ export default function DataAnalytics() {
             </div>
             )}
             {uploaded && (
-                <ChatBot allData={parsedData}/>
+                <CsvToTable allData={parsedData} />
             )}
         </div>
     );

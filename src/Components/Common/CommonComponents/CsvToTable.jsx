@@ -9,7 +9,7 @@ function CsvToTable({ allData }) {
   const [rowSelect, setRowSelect] = useState(null);
   const [selectedRowsData, setSelectedRowsData] = useState([]);
   const [allRowsSelected, setAllRowsSelected] = useState(false); // Track the header checkbox state
-  const rowsPerPage = 3;
+  const rowsPerPage = 5;
   const headers = Object.keys(allData[0]);
   const rows = allData.slice(0);
 
@@ -57,7 +57,7 @@ function CsvToTable({ allData }) {
   };
 
   return (
-    <div className="max-w-full overflow-hidden">
+    <div className="max-w-full overflow-auto">
       <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: "calc(100vh - 350px)" }}>
       <table className="text-md text-left rtl:text-right text-gray-700 bg-white mb-4 w-full">
         <thead className="text-xs text-gray-700 uppercase bg-gray-100">
@@ -133,7 +133,7 @@ function CsvToTable({ allData }) {
             paddingBottom: "30px", // Add padding at the bottom to prevent overlap
           }}>
         {selectedRowsData.length > 0 && (
-          <AnalyticsGraph chartData={selectedRowsData} headers={headers} />
+          <AnalyticsGraph chartData={selectedRowsData} headers={headers.slice(2)} allData={allData}/>
         )}
       </div>
 

@@ -83,6 +83,12 @@ export default function Parameter() {
         }
     };
 
+    useEffect(() => {
+        localStorage.setItem('facilityName', facilityName);
+        localStorage.setItem('parameterName', parameterName);
+        localStorage.setItem('processName', processName);
+    }, [facilityName, parameterName, processName]);
+
     const getSignedUrl = async (evidence_url, evidence_name) => {
         if (evidence_url) {
             // Getting Supabase document
@@ -122,6 +128,8 @@ export default function Parameter() {
     const handleCellClick = async (row) => {
         navigate(`${row.id}`);
 
+        localStorage.setItem('method', row.name)
+        
         // setIsPopupOpen(true);
         // console.log(row)
         // const isLocal = window.location.hostname === 'localhost';

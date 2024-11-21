@@ -256,13 +256,14 @@ export default function ManageUsers() {
       .then(function (res) {
         setIsLoading(false)
         alert(res.data.message);
-        const whatsappUrl = `${mainConfig.TWILIO_WHATSAPP}?text=${encodeURIComponent(
-          mainConfig.WHATSAPP_JOINING_CODE
-        )}`;
-        window.open(whatsappUrl, "_blank");
+        // const whatsappUrl = `${mainConfig.TWILIO_WHATSAPP}?text=${encodeURIComponent(
+        //   mainConfig.WHATSAPP_JOINING_CODE
+        // )}`
+        // window.open(whatsappUrl, "_blank");
       })
       .catch(function (err) {
-        console.log(err);
+        alert(err.response.data.message)
+        setIsLoading(false)
       });
     }, 2000);
   }

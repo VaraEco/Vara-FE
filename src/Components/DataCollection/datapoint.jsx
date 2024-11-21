@@ -29,6 +29,11 @@ export default function DataPoint() {
     const [rowEditIndex, setEditRowIndex] = useState(-1);
 
     const { parameter, process, data_point } = useParams();
+
+    const facilityName = localStorage.getItem('facilityName');
+    const parameterName = localStorage.getItem('parameterName');
+    const processName = localStorage.getItem('processName');
+    const methodName = localStorage.getItem('method')
     
     const fields = [
         { id: 'log_date', label: 'Log Date', type: 'date' },
@@ -363,7 +368,7 @@ export default function DataPoint() {
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
             <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-4xl">
                 <h1 className="text-2xl text-center mb-4">Data Source </h1>
-
+                <h2 className="text-lg text-center mb-4">{parameterName} - {facilityName} - {processName} - {methodName}</h2>
                 <DataGraph chartData={AllValues}/>
                 
                 <Table

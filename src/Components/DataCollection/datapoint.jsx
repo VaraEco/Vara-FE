@@ -39,7 +39,9 @@ export default function DataPoint() {
         { id: 'log_date', label: 'Log Date', type: 'date' },
         { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_unit', label: 'Unit', type: 'text'},
-        { id: 'evidence_url', label: 'Evidence', type: 'url' }]
+        { id: 'evidence_url', label: 'Evidence', type: 'url' },
+        { id: 'Method', label: 'Method', type: 'text' }
+    ]
 
     const [OCR_Feature, setOCR_Feature] = useState(true);  // Set the OCR feature state
     const [tableFields, setTableFields] = useState(fields);
@@ -49,7 +51,8 @@ export default function DataPoint() {
         { id: 'value', label: 'Value', type: 'text' },
         { id: 'log_unit', label: 'Unit', type: 'text'},
         { id: 'evidence_url', label: 'Evidence', type: 'url' },
-        { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text'}
+        { id: 'ai_extracted_value', label: 'AI Extracted Value', type: 'text'},
+        { id: 'Method', label: 'Method', type: 'text' }
     ]
 
     const importFields = [
@@ -178,11 +181,11 @@ export default function DataPoint() {
 
     const handleSaveNewEntry = async () => {
     
-        
+
         try {
-            const { log_id, evidenceUrl}  = await generalFunction.createUserDataEntry('', process, parameter, data_point, newEntry);
+            const { log_id, evidenceUrl}  = await generalFunction.createUserDataEntry('', process, parameter, data_point, {...newEntry, Method: 'Manual'});
             const evidence_url = evidenceUrl ? await getSignedUrl(evidenceUrl) : null;
-            const newRowWithId = { ...newEntry, log_id}
+            const newRowWithId = { ...newEntry, log_id, Method: "Manual"}
             if (evidence_url) {
                 newRowWithId.evidence_url = evidence_url;
             }
@@ -238,7 +241,8 @@ export default function DataPoint() {
                 log_date: formatDate(rowData.log_date),
                 value: parseInt(rowData.value, 10),
                 evidenceFile: null,
-                evidence_url: ''
+                evidence_url: '',
+                Method: "Import"
             };
             await generalFunction.createUserDataEntry('', process, parameter, data_point, imported_entry);
             // added sorting logic here

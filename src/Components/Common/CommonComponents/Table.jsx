@@ -6,13 +6,14 @@ import PdfViewer from './PdfViewer';
 import * as XLSX from 'xlsx';
 
 const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions = false, actions = [], rowsPerPage = 10, enablePagination = false, searchableColumn, importButton = false, handleOpenImport, importType = '' }) => {
+  
   fields = fields.filter(field => !field.no_show);
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState('');
-
+  
     const handleViewClick = (pdfUrl, e) => {
         e.preventDefault();
         setSelectedPdfUrl(pdfUrl);

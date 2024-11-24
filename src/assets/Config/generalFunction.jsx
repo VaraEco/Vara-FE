@@ -896,7 +896,8 @@ export const generalFunction = {
                     evidence_url: evidenceUrl, // Save the public URL returned from the uploadFile function
                     evidence_name: file_name,
                     ai_extracted_value: newEntry.ai_extracted_value,
-                    log_unit: newEntry.log_unit
+                    log_unit: newEntry.log_unit,
+                    Method: newEntry.Method
                 }
             ])
             .single()

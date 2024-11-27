@@ -1,15 +1,18 @@
 import html2canvas from 'html2canvas';
 import {jsPDF} from 'jspdf';
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { Bar, Line, Pie, Scatter } from 'react-chartjs-2'
 import  Button from '../Common/CommonComponents/Button'
 
 function AnalyticsGraph({chartData, headers, allData}) {
 
     const [chartType, setChartType] = useState('linegraph')
-    const [displayType, setDisplayType] = useState('multi')
-    const [selectedUnit, setSelectedUnit] = useState(''); 
+    const [displayType, setDisplayType] = useState('single')
+    const [selectedUnit, setSelectedUnit] = useState('');; 
     const [filteredData, setFilteredData] = useState([]);
+    const [selectedPeriod, setSelectedPeriod] = useState("all")
+
+    const [filteredHeaders,setFilteredHeaders] = useState([])
 
     const graphRef = useRef(null)
 
@@ -17,6 +20,14 @@ function AnalyticsGraph({chartData, headers, allData}) {
         return <h1>No data available</h1>;
     }
     
+    console.log('chartData------>', chartData);
+    
+    useEffect(() => {
+      if (displayType === 'single') {
+        setFilteredData(chartData); // Default to the complete dataset for single display
+        setFilteredHeaders(headers); // Default headers for single display
+      }
+    }, [chartData, headers, displayType]);
 
     const getRandomColor = () => {
         const letters = "0123456789ABCDEF";
@@ -26,6 +37,73 @@ function AnalyticsGraph({chartData, headers, allData}) {
         }
         return color;
       };
+
+      const handlePeriodChange = (e) => {
+        const period = e.target.value;
+        setSelectedPeriod(period);
+    
+        const currentDate = new Date();
+        let startDate;
+    
+        // Calculate the start date based on the selected period
+        if (period === '7days') {
+            startDate = new Date(currentDate);
+            startDate.setDate(currentDate.getDate() - 7);
+        } else if (period === '1month') {
+            startDate = new Date(currentDate);
+            startDate.setMonth(currentDate.getMonth() - 1);
+        } else if (period === '6months') {
+            startDate = new Date(currentDate);
+            startDate.setMonth(currentDate.getMonth() - 6);
+        } else {
+            // For 'all', include all data
+            if (displayType === 'multi' && selectedUnit) {
+                setFilteredData(groupedData[selectedUnit]);
+            } else {
+                setFilteredData(allData);
+            }
+            setFilteredHeaders(headers);
+            return;
+        }
+    
+        startDate.setHours(0, 0, 0, 0);
+    
+        const filteredHeader = headers.filter(dateStr => {
+            try {
+                const [day, month, year] = dateStr.split('-');
+                const headerDate = new Date(year, month - 1, day);
+                headerDate.setHours(0, 0, 0, 0);
+                return headerDate >= startDate;
+            } catch (error) {
+                console.error('Error parsing date:', dateStr, error);
+                return false;
+            }
+        });
+    
+        setFilteredHeaders(filteredHeader);
+    
+        let filtered;
+        if (displayType === 'multi' && selectedUnit) {
+            filtered = groupedData[selectedUnit].map(row => {
+                const filteredRow = { Unit: row.Unit };
+                filteredHeader.forEach(date => {
+                    filteredRow[date] = row[date];
+                });
+                return filteredRow;
+            });
+        } else {
+            filtered = allData.map(row => {
+                const filteredRow = { Unit: row.Unit };
+                filteredHeader.forEach(date => {
+                    filteredRow[date] = row[date];
+                });
+                return filteredRow;
+            });
+        }
+    
+        setFilteredData(filtered);
+    };
+    
 
     const labels = headers;
     const keys = headers.filter(header => header !== "");
@@ -53,9 +131,13 @@ function AnalyticsGraph({chartData, headers, allData}) {
 
     const datasets = (displayType === 'multi' ? filteredData : chartData).map((row, index) => {
 
-      const dataValues = headers.map(header => row[header]);
+      const dataValues = filteredHeaders.map(header => row[header]);
+    console.log("dataValues--------->", dataValues);
     
-        const label = row[""];
+        const label = row[""] || `Dataset ${index + 1}`
+
+        console.log('label===========>>', label);
+        
 
         const scatterData = dataValues.map((value, idx) => ({
           x: idx+1,
@@ -147,22 +229,16 @@ function AnalyticsGraph({chartData, headers, allData}) {
     
         // Use html2canvas to capture the graph area
         html2canvas(graphRef.current, {
-          scale: 2,  // Increase the scale for better resolution
-          useCORS: true,  // Allow cross-origin requests for images (if needed)
+          scale: 2, 
+          useCORS: true,
         }).then((canvas) => {
           const imgData = canvas.toDataURL('image/png')
       
-          // Get the aspect ratio of the canvas to maintain it in the PDF
-          const imgWidth = 180;  // Width in PDF units (A4 width is 210mm)
-          const imgHeight = (canvas.height * imgWidth) / canvas.width;  // Maintain aspect ratio
+          const imgWidth = 180; 
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
           // Add image to the PDF document
           doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight)
-      
-          // If you have multiple graphs, you might want to add a new page for each
-          // doc.addPage(); // Uncomment if you want a new page for each graph
-      
-          // Save the PDF with the graph image
           doc.save('graph.pdf')
         })
       }
@@ -171,19 +247,26 @@ function AnalyticsGraph({chartData, headers, allData}) {
     <div style={{marginBottom: '50px', marginTop: '15px' }}>
       <div style={{display:'flex', justifyContent:'center', gap:'20px'}}>
       <select onChange={(e)=> setDisplayType(e.target.value)} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px'}}>
-        <option value={"multi"}>Display Graph</option>
+        {/* <option value="">Display Graph</option> */}
         <option value="single">Display Individually</option>
         <option value="multi">Display In One</option>
       </select>
-      <select onChange={handleUnitChange} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px'}}>
+      <select disabled={displayType==="single" ? true : false} onChange={handleUnitChange} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px',}}>
         {Object.keys(groupedData).map(item=> <option value={item}>{item}</option>)}
       </select>
         <select onChange={(e)=> setChartType(e.target.value)} style={{border:'1px solid gray', padding:'5px 10px', float:'right', borderRadius:'10px'}}>
-            <option value="linegraph">Select Graph</option>
+            {/* <option value="linegraph">Select Graph</option> */}
             <option value="linegraph">Line Graph</option>
             <option value="bargraph">Bar Graph</option>
             <option value="pie">Pie Graph</option>
             <option value="scatter">Scatter Graph</option>
+        </select>
+
+        <select onChange={handlePeriodChange} style={{border:'1px solid gray', padding:'5px 10px', float:'right', borderRadius:'10px'}}>
+        <option value="all">All</option>
+            <option value="7days">7 Days</option>
+            <option value="1month">1 Month</option>
+            <option value="6months">6 Months</option>
         </select>
 
         <Button label='Download Graph' handleFunction={downloadGraphAsPDF}/>
@@ -192,13 +275,13 @@ function AnalyticsGraph({chartData, headers, allData}) {
        <div ref={displayType === 'multi' ? graphRef : null} style={{height:'350px', display:displayType==='multi' ? 'block' : 'none'}}>
        {displayType === 'multi' && (
   chartType === 'linegraph' ? (
-    <Line data={{ labels, datasets }} options={options} />
+    <Line data={{ labels: filteredHeaders, datasets }} options={options} />
   ) : chartType === 'bargraph' ? (
-    <Bar data={{ labels, datasets }} options={options} />
+    <Bar data={{ labels: filteredHeaders, datasets }} options={options} />
   ) : chartType === 'pie' ? (
     <div style={{display:'flex', justifyContent:'center', height:'450px', border: '1px solid #ddd', padding:'10px', width:'50%', margin:'auto', marginTop:'25px'}}><Pie data={{ labels:'', datasets }}/></div>
   ): chartType === 'scatter' ? (  // Render Scatter chart
-    <Scatter data={{ labels, datasets }} options={options} />
+    <Scatter data={{ labels: filteredHeaders, datasets }} options={options} />
 ) : null
 )}
        </div>
@@ -210,11 +293,11 @@ function AnalyticsGraph({chartData, headers, allData}) {
             <div key={index} style={{ border: '1px solid #ddd', padding:'10px', width:'500px', height:'350px', margin:'auto' }}>
               <h3>{dataset.label}</h3>
               {/* Render individual chart for each dataset */}
-              {chartType === 'linegraph' && <Line data={{ labels, datasets: [dataset] }} options={options} />}
-              {chartType === 'bargraph' && <Bar data={{ labels, datasets: [dataset] }} options={options} />}
+              {chartType === 'linegraph' && <Line data={{ labels: filteredHeaders, datasets: [dataset] }} options={options} />}
+              {chartType === 'bargraph' && <Bar data={{ labels: filteredHeaders, datasets: [dataset] }} options={options} />}
               <div style={{height:'300px', display:'flex', justifyContent:'center'}}>
               {chartType === 'pie' && <Pie data={{ labels:'', datasets: [dataset] }}/>}
-              {chartType === 'scatter' && <Scatter data={{ labels, datasets: [dataset] }} options={options} />}
+              {chartType === 'scatter' && <Scatter data={{ labels: filteredHeaders, datasets: [dataset] }} options={options} />}
               </div>
             </div>
           ))}

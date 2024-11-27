@@ -826,13 +826,14 @@ export const generalFunction = {
     fetchParameterDataSourceData: async (id) =>{
         const { data, error } = await supabase
         .from('parameter_log')
-        .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value, log_unit')
+        .select('log_id, value, log_date, evidence_url, evidence_name, ai_extracted_value, log_unit, Method')
         .eq('data_collection_id', id);
 
         if (error){
             console.error(error);
             return
         }
+        console.log("Fetched Dauiyiuuta:", data); 
         return data
     },
 

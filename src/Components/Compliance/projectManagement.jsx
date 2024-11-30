@@ -5,6 +5,8 @@ import  Table from '../Common/CommonComponents/Table'
 import PopUp from '../Common/CommonComponents/PopUp'
 import IconEdit from '../Common/CommonComponents/IconEdit';
 import IconDelete from '../Common/CommonComponents/IconDelete';
+import { mainConfig } from "../../assets/Config/appConfig";
+import axios from 'axios';
 
 export default function ProjectManagement() {
   const fields = [
@@ -13,9 +15,10 @@ export default function ProjectManagement() {
     { id: 'status', label: 'Status', type: 'text', showInPopup: true},
     { id: 'due_date', label: 'Due Date', type: 'date', showInPopup: true},
     { id: 'lead', label: 'Lead', type: 'text', showInPopup: true},
+    {id:'reminder', label: 'Opt-in For Reminder', type:'checkbox', showInPopup:false, not_required: true}
   ];
 
-  const initial_fields = { task_id: '', project: '', status: '', due_date: '', lead: '' }
+  const initial_fields = { task_id: '', project: '', status: '', due_date: '', lead: '', reminder: false }
 
   const [AllProjects, setAllProjects] = useState([]);
   const [newProject, setProject] = useState({
@@ -24,6 +27,7 @@ export default function ProjectManagement() {
     status: '',
     due_date: '',
     lead: '',
+    reminder: false
 });
   const [editProject, setEditProject] = useState({
     project_id: '',
@@ -37,6 +41,9 @@ export default function ProjectManagement() {
   const [validationErrors, setValidationErrors] = useState({});
   const [isEditOpen, setEditOpen] = useState(false);
   const [rowIndex, setRowIndex] = useState(-1);
+  const [allUers, setAllUsers] = useState([])
+  const ownerDetails = JSON.parse(localStorage.getItem("adminDetails"));
+  const [mail, setUserMail] = useState('')
 
   useEffect(() => {
     const getData = async () => {
@@ -53,6 +60,25 @@ export default function ProjectManagement() {
     getData();
   }, [])
 
+  useEffect(() => {
+    const getAdmins = async () => {
+        
+        let request = generalFunction.createUrl(`api/entities/${ownerDetails?.ownerEntityId}/admins?userId=${generalFunction.getUserId()}`);
+        const { data } = await axios.get(
+            request.url,
+            {
+                headers: {...request.headers, apiKey: ownerDetails?.apiKey},
+            }
+        );
+        console.log('data-data',data.data);
+        
+        let filteredData = data.data.filter((user) => !mainConfig.ALLOWED_ADMIN.includes(user.emails[0]) && user.isActive);
+        setAllUsers(filteredData)
+       
+    };
+    getAdmins();
+}, []);
+
   const handleOpenPopup = () => {
     setValidationErrors({});
     setIsPopupOpen(true);
@@ -64,6 +90,8 @@ export default function ProjectManagement() {
   }
 
   const handleClosePopup = async () => {
+    console.log('new-project', newProject);
+    
     setIsPopupOpen(false);
     getProjectNumber();
     const newProject_ = {
@@ -72,6 +100,7 @@ export default function ProjectManagement() {
         status: newProject.status,
         lead: newProject.lead,
         due_date: newProject.due_date,
+        reminder: newProject.reminder,
         company_id: await generalFunction.getCompanyId()
     }
     generalFunction.createTableRow(`project_management`, newProject_);
@@ -91,19 +120,102 @@ export default function ProjectManagement() {
       project_id: projectTracker,
       [name]: value,
     }));    
+
+    if(name === "lead"){
+      const selectedUser = allUers.find(user=> user.name === value)
+      console.log(selectedUser.name, selectedUser.emails[0]);
+      setUserMail(selectedUser.emails[0])
+    }
   };
 
   const handleAddRow = () => {
+    console.log('save button clicked');
+    
     const errors = generalFunction.validateData(newProject, fields);
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
-    setAllProjects((prevData) => [...prevData, newProject]);
+
+    console.log('save button clicked----------->2');
+    console.log(newProject);
+    
+
+    const newProjectWithReminder = { ...newProject, reminder: false };
+
+    setAllProjects((prevData) => [...prevData, newProjectWithReminder]);
+    // sendReminder()
     handleClosePopup();
   };
 
-  const popupFields = fields.filter(field => field.showInPopup);
+  async function handleReminderToggle(e, project) {
+    const updatedReminder = e.target.checked;
+  
+    const selectedUser = allUers.find(user=> user.name == project.lead)
+
+    console.log(project, 'sel00000000000000000000');
+    
+    try {
+      // Send updated reminder status to backend
+      await axios.post(mainConfig.REMINDER_BASE_URL, {
+        email: selectedUser.emails[0], // Assuming `lead` contains the email
+        taskName: project.project,
+        dueDate: project.due_date,
+        reminder: updatedReminder,
+      });
+
+      await generalFunction.editProject({
+        ...project,
+        reminder: updatedReminder,
+      });
+  
+      // Update the local state to reflect the change
+      setAllProjects((prevProjects) =>
+        prevProjects.map((p) =>
+          p.project_id === project.project_id
+            ? { ...p, reminder: updatedReminder }
+            : p
+        )
+      );
+    } catch (error) {
+      console.error('Error updating reminder status:', error);
+    }
+  }
+
+  function sendReminder(){
+    console.log('mail',mail, newProject.project, newProject.due_date);
+    
+    axios.post(mainConfig.REMINDER_BASE_URL , 
+      {
+        email: mail,
+        taskName: newProject.project,
+        dueDate: newProject.due_date,
+        reminder: newProject.reminder
+      }
+    )
+    .then(function(res){
+      console.log(res);
+      console.log('reminder sent...');
+      
+    })
+    .catch(function(error){
+      console.log(error);
+    })
+  }
+
+  const popupFields = fields.filter(field => field.showInPopup).map(field => {
+    if (field.id === 'lead') {
+        return {
+            ...field,
+            type: 'select',
+            options: allUers.map(user => ({
+                value: user.id, // Assuming `id` is the unique identifier
+                label: user.name // Assuming `name` is the display name
+            }))
+        };
+    }
+    return field;
+});
 
 // functions for edit button
 
@@ -135,6 +247,8 @@ const handleEditInput = (e) => {
 };
 
 async function handleEditSubmit() {
+  console.log('edit cicked');
+  
   const errors = generalFunction.validateData(editProject, fields);
   if (Object.keys(errors).length > 0) {
     setValidationErrors(errors);
@@ -179,6 +293,7 @@ const handleCloseEdit = () => {
         searchableColumn="project"
         hasActions={true}
         actions={actions}
+        handleReminderToggle={handleReminderToggle}
       />
       <div className="mb-6 mt-10 flex items-center justify-center">
         <Button
@@ -195,6 +310,7 @@ const handleCloseEdit = () => {
           handleClosePopup={handleClosePopup}
           handleSave={handleAddRow}
           validationErrors={validationErrors}
+          allUers={allUers}
         />
       )}
       {isEditOpen && (

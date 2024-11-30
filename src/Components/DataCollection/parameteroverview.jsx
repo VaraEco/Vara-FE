@@ -239,6 +239,16 @@ export default function Parameteroverview() {
         // Fetch updated data
         const parameterId = parameterProcessData.find(mapping => mapping.id === mappingId)?.parameter_id;
         fetchProcessParameterData(parameterId);
+
+        const {error: parameter_error} = await supabase
+        .from('parameter')
+        .delete()
+        .eq('para_id', mapping.parameter_id)
+
+        if (parameter_error) {
+            console.error(parameter_error);
+            return;
+        }
     }
 
     const handleInputChange = (e, setData) => {

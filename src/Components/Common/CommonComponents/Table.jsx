@@ -5,7 +5,7 @@ import Button from "./Button";
 import PdfViewer from './PdfViewer';
 import * as XLSX from 'xlsx';
 
-const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions = false, actions = [], rowsPerPage = 10, enablePagination = false, searchableColumn, importButton = false, handleOpenImport, importType = '' }) => {
+const Table = ({ fields, tableData = [], hasLink = false,handleReminderToggle, pageLink, hasActions = false, actions = [], rowsPerPage = 10, enablePagination = false, searchableColumn, importButton = false, handleOpenImport, importType = '' }) => {
   
   fields = fields.filter(field => !field.no_show);
   const navigate = useNavigate();
@@ -147,6 +147,8 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
           </thead>
           <tbody>
             {paginatedData.map((row, index) => {
+              console.log(row,'row================?');
+              
               const realIndex = index + (currentPage - 1) * rowsPerPage;
               const clickable = hasLink && fields.some(f => f.link);
               const isLastRow = index === paginatedData.length - 1;
@@ -159,6 +161,14 @@ const Table = ({ fields, tableData = [], hasLink = false, pageLink, hasActions =
                   {fields.map((field) => (
                     <td key={field.id} className={`px-2 py-4 ${isLastRow ? '' : 'border-b'} ${clickable ? 'hover:text-[#0475E6]' : ''}`}>
                       {field.type === 'date' ? ( formatDate(row[field.id]))
+
+                      :
+                      field.type === 'checkbox' ? (
+                        <label onClick={(e) => e.stopPropagation()} class="inline-flex items-center cursor-pointer">
+                          <input onChange={(e)=> handleReminderToggle(e, row)}  type="checkbox" checked={row.reminder} class="sr-only peer"/>
+                          <div  class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                        )
                       : field.type === 'url' && row[field.id] ? (
                         <a
                           href={row[field.id]}

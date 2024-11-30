@@ -333,6 +333,7 @@ export const generalFunction = {
                 status: rowData.status,
                 due_date: rowData.due_date,
                 lead: rowData.lead,
+                reminder: rowData.reminder
             })
             .eq('project_id', rowData.project_id)
             .eq('company_id', company_id);

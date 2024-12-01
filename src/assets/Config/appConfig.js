@@ -5,7 +5,7 @@ export const mainConfig = {
     WHATSAPP_BOT_API_BASE_URL: "https://vara-be-sixe.onrender.com",
     TWILIO_WHATSAPP: "https://wa.me/+14155238886",
     WHATSAPP_JOINING_CODE: "join grew-development",
-    REMINDER_BASE_URL: "http://localhost:5000/send-reminder",
+    REMINDER_BASE_URL: "https://nykaa-backend-production.up.railway.app/send-reminder",
     CALENDLY_LINK: "https://calendly.com/",
     GOOGLE_REDIRECT_URI: "https://quest-dashboard-starter-template-26sa.vercel.app/",
     GOOGLE_CLIENT_ID: "48459226857-eobo616j32erioo3dab9nid98fmvjom7.apps.googleusercontent.com",

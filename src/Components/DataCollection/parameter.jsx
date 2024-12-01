@@ -7,6 +7,7 @@ import Button from '../Common/CommonComponents/Button';
 import { apiClient } from '../../assets/Config/apiClient';
 import { useNavigate } from 'react-router-dom';
 import IconDelete from '../Common/CommonComponents/IconDelete';
+import { Line } from 'react-chartjs-2';
 
 export default function Parameter() {
     const [collectionData, setCollectionData] = useState([]);
@@ -20,6 +21,7 @@ export default function Parameter() {
     const [processName, setProcessName] = useState('');
     const [parameterName, setParameterName] = useState('');
     const [parameterUnit, setParameterUnit] = useState('');
+    const [graphData, setGraphData] = useState([])
     const navigate = useNavigate();
 
     const tableFields = [
@@ -28,10 +30,20 @@ export default function Parameter() {
         {id: 'action', label: 'Action'}
     ];
 
+    console.log('parameter', parameter, 'process', process);
+    
+
     // Fetch data collection points on component mount and when parameter/process changes
     useEffect(() => {
         fetchDataCollectionPoints();
     }, [parameter, process]);
+
+    useEffect(() => {
+        if (collectionData.length > 0) {
+            fetchLogsByDataCollectionId();
+        }
+    }, [collectionData]);
+    
 
     const fetchDataCollectionPoints = async () => {
         try {
@@ -80,6 +92,48 @@ export default function Parameter() {
             setCollectionData(collectionPoints);
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const fetchLogsByDataCollectionId = async () => {
+        try {
+            // Fetch logs from `parameter_log` table
+            const { data: parameterLogs, error: logError } = await supabase
+                .from('parameter_log')
+                .select('data_collection_id, log_id, value, log_date, evidence_url')
+                .in(
+                    'data_collection_id',
+                    collectionData.map(item => item.id) // Ensure we only fetch logs for existing collection points
+                );
+    
+            if (logError) {
+                console.error('Error fetching parameter logs:', logError);
+                return;
+            }
+    
+            // Transform logs into grouped format
+            const groupedLogs = parameterLogs.reduce((acc, log) => {
+                const { data_collection_id, ...rest } = log;
+    
+                if (!acc[data_collection_id]) {
+                    acc[data_collection_id] = [];
+                }
+    
+                acc[data_collection_id].push(rest);
+                return acc;
+            }, {});
+    
+            // Convert grouped object into array of objects with data_collection_id as key
+            const formattedLogs = Object.keys(groupedLogs).map(key => ({
+                data_collection_id: key,
+                logs: groupedLogs[key],
+            }));
+    
+            console.log('Formatted Logs:', formattedLogs);
+            // Optionally update state or pass this data as needed
+            setGraphData(formattedLogs);
+        } catch (error) {
+            console.error('Error processing logs:', error);
         }
     };
 
@@ -273,9 +327,11 @@ export default function Parameter() {
 
         fetchDataCollectionPoints()
     }
+
+    
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
-            <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-4xl">
+            <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-5xl">
                 <h1 className="text-xl text-center mb-4">Parameter Data</h1>
 
                 <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -300,6 +356,33 @@ export default function Parameter() {
             </div>
 
                 <div className="container mx-auto">
+
+             <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'15px'}}>
+             {graphData.map((item) => (
+            <div style={{ height:'300px', width:'480px', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px', padding:'5px', borderRadius:'10px'}} key={item.data_collection_id} className="mb-8">
+              <h3 className="text-center text-md font-semibold mb-2 pt-2">
+                Data Collection ID: {item.data_collection_id}
+              </h3>
+              <Line
+                data={{
+                  labels: item.logs.map((log) =>
+                    new Date(log.log_date).toLocaleDateString()
+                  ),
+                  datasets: [
+                    {
+                      label: `Collection ID: ${item.data_collection_id}`,
+                      data: item.logs.map((log) => log.value),
+                      fill: false,
+                      borderColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+                      tension: 0.4,
+                    },
+                  ],
+                }}
+                options={{ responsive: true }}
+              />
+            </div>
+          ))}
+             </div>
                     {/* <div className="mt-4">
                         <h2 className="text-l text-center">Data Collection Points</h2>
                         <table className="min-w-full bg-white">

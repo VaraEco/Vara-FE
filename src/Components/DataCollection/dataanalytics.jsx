@@ -92,7 +92,7 @@ export default function DataAnalytics() {
                     />
                 </div>
             </div>
-            <h2 className="text-lg text-center mt-4 text-gray-400">Here's the sample file that we are accepting <a href='https://docs.google.com/spreadsheets/d/1xYtvMLc8LhBFOgovS8RLCQa2yso7C0ViuyFgXZdt6Z4/edit?pli=1&gid=1381247138#gid=1381247138' className='text-blue-400 cursor-pointer'>view</a></h2>
+            <h2 className="text-lg text-center mt-4 text-gray-400">Here's the sample file that we are accepting <a href='https://docs.google.com/spreadsheets/d/1YiyrTwGDV7X_IK8tZlF0T8sMkLCh0-XBJFNqS34D7v8/edit?usp=sharing' target='_blank' className='text-blue-400 cursor-pointer'>view</a></h2>
             <h2 className="text-lg text-center mt-20 mb-8">Instructions</h2>
             <div className="flex flex-row justify-center items-center gap-20">
                 <div className="text-left text-lg bg-gray-100 w-80 h-60 p-4 rounded-lg">

@@ -913,6 +913,8 @@ export const generalFunction = {
     },
 
     uploadFile: async (file) =>{
+        console.log(file, 'file===========>');
+        
         const fileName = `${Date.now()}_${file.name}`;
 
         const { data, error } = await supabase

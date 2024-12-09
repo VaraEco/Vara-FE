@@ -11,6 +11,9 @@ import DeletePopUp from "../Common/CommonComponents/DeletePopUp";
 import { ReactSpreadsheetImport } from "react-spreadsheet-import";
 import { apiClient } from "../../assets/Config/apiClient";
 import DataGraph from "./DataGraph.jsx";
+import { DateRangePicker } from "react-date-range";
+import 'react-date-range/dist/styles.css'; // main css file
+import 'react-date-range/dist/theme/default.css'; // theme css file
 
 export default function DataPoint() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -24,6 +27,15 @@ export default function DataPoint() {
     log_unit: "",
   });
   const [AllValues, setAllValues] = useState([]);
+  const [filterPopUp, setFilterPopUp] = useState(false)
+  const [selectionRange, setSelectionRange] = useState( [{
+    startDate: new Date(),
+    endDate: new Date(),
+    key: 'selection'
+  }])
+  const [filteredData, setFilteredData] = useState([]);
+  const [originalData, setOriginalData] = useState([]);
+  const [selectedMethod, setSelectedMethod] = useState('');
 
   const [fileName, setFileName] = useState("");
 
@@ -103,6 +115,7 @@ export default function DataPoint() {
             const sortedData = processedData.sort(
               (a, b) => new Date(b.log_date) - new Date(a.log_date)
             );
+            setOriginalData(sortedData)
             setAllValues(sortedData);
           };
           processLogs(data);
@@ -142,7 +155,7 @@ export default function DataPoint() {
   };
 
   const handleInputChange = (e) => {
-    console.log("log input change", e.target.value);
+    console.log("log input change date..............", e.target.value);
 
     const { name, value, type } = e.target;
     const formattedValue = type === "date" ? formatDateDisplay(value) : value;
@@ -205,6 +218,8 @@ export default function DataPoint() {
   };
 
   const handleSaveNewEntry = async () => {
+    console.log('dateeeeeeeeeeee', newEntry.log_date);
+    
     try {
       const { log_id, evidenceUrl } = await generalFunction.createUserDataEntry(
         "",
@@ -221,6 +236,19 @@ export default function DataPoint() {
       // added sorting logic here
       // setAllValues((prevData) => [...prevData, newRowWithId])
       setAllValues((prevData) => [newRowWithId, ...prevData]);
+
+      if (filteredData.length > 0) {
+        const { startDate, endDate } = selectionRange[0];
+        const entryDate = new Date(newRowWithId.log_date);
+        if (entryDate >= startDate && entryDate <= endDate) {
+          // If the new entry matches the date filter, add it to filteredData
+          setFilteredData((prevData) => [newRowWithId, ...prevData]);
+        }
+      } else {
+        // If no filter is applied, simply add it to filteredData as well
+        setFilteredData((prevData) => [newRowWithId, ...prevData]);
+      }
+
       if (OCR_Feature && newEntry.evidenceFile) {
         aiExtractedFlow(log_id);
       }
@@ -434,6 +462,47 @@ export default function DataPoint() {
     />,
   ];
 
+  function handleFilterData(){
+    setFilterPopUp(true)
+    console.log(filterPopUp);
+    
+  }
+
+  const handleDateRangeChange = (item) => {
+    setSelectionRange([item.selection]);
+  };
+
+  function applyFilter(){
+    const { startDate, endDate } = selectionRange[0];
+    console.log('startDate, endDate', startDate, endDate);
+    
+    let newFilteredData = AllValues.filter((entry) => {
+      const entryDate = new Date(entry.log_date); 
+      return entryDate >= startDate && entryDate <= endDate;
+    });
+
+    if (selectedMethod) {
+      newFilteredData = newFilteredData.filter((entry) => entry.Method === selectedMethod);
+    }
+  
+    setFilteredData(newFilteredData);
+  }
+
+  function handleFilterMethod(e) {
+    const selectedMethod = e.target.value;
+    
+    if (!selectedMethod) {
+      setFilteredData(AllValues); // Reset the filter to all entries
+    } else {
+      const filteredMethod = AllValues.filter((entry) => entry.Method === selectedMethod);
+      setFilteredData(filteredMethod);
+    }
+  }
+
+  useEffect(() => {
+    applyFilter();
+  }, [AllValues]);
+
   return (
     <div className="relative flex flex-col justify-center overflow-hidden mt-20">
       <h4
@@ -472,11 +541,13 @@ export default function DataPoint() {
 
         <Table
           fields={tableFields}
-          tableData={AllValues}
+          tableData={filteredData.length > 0 ? filteredData : AllValues}
           hasActions={true}
           actions={actions}
           importButton={true}
           handleOpenImport={handleOpenImport}
+          handleFilterData={handleFilterData}
+          handleFilterMethod={handleFilterMethod}
           importType="Data"
         />
         <div className="flex justify-center items-center p-5">
@@ -515,6 +586,56 @@ export default function DataPoint() {
             handleFunction={handleDelete}
           />
         )}
+
+        {filterPopUp && <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white  rounded-lg overflow-y-auto" style={{
+        position: 'fixed',        // Fixed positioning to stay in view when scrolling
+      top: '50%',               // Position vertically in the middle
+      left: '50%',              // Position horizontally in the middle
+      transform: 'translate(-50%, -50%)', // Adjust the div to truly center by shifting it back by half of its size
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      zIndex: 1000,             // Ensure the popup is above other elements
+      backgroundColor: 'white', 
+      padding:'20px 80px'
+        }}>
+        
+        
+        <DateRangePicker
+         onChange={handleDateRangeChange}
+  showSelectionPreview={true}
+  moveRangeOnFirstSelection={false}
+  ranges={selectionRange}
+        />
+       <div style={{display:'flex', justifyContent:'end' ,gap:'10px', marginTop:'10px'}}>
+        <Button
+        label="Reset Filter"
+        handleFunction={() => {
+          setSelectionRange([{
+            startDate: new Date(),
+            endDate: new Date(),
+            key: 'selection'
+          }]);
+          setFilteredData(AllValues); // Assuming you have stored original data in `originalData`
+          setFilterPopUp(false); // Close filter popup
+        }}
+        />
+       <Button
+       label="Close"
+       handleFunction={()=> setFilterPopUp(false)}
+       />
+
+       <Button 
+       label="Apply Filter"
+       handleFunction={()=> {
+       applyFilter();
+       setFilterPopUp(false)
+       } }
+       />
+       </div>
+        
+        </div>
+          </div>}
         {isEditOpen && (
           <PopUp
             title="Edit Value"

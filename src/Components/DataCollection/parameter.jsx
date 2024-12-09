@@ -22,6 +22,8 @@ export default function Parameter() {
     const [parameterName, setParameterName] = useState('');
     const [parameterUnit, setParameterUnit] = useState('');
     const [graphData, setGraphData] = useState([])
+    const [collectionPointNames, setCollectionPointNames] = useState({});
+
     const navigate = useNavigate();
 
     const tableFields = [
@@ -129,8 +131,13 @@ export default function Parameter() {
                 logs: groupedLogs[key],
             }));
     
-            console.log('Formatted Logs:', formattedLogs);
-            // Optionally update state or pass this data as needed
+            formattedLogs.forEach(item => {
+                item.logs.sort((a, b) => new Date(a.log_date) - new Date(b.log_date)); // Sort logs within each collection by log_date
+            });
+
+            console.log('formated date::::::', formattedLogs);
+            
+
             setGraphData(formattedLogs);
         } catch (error) {
             console.error('Error processing logs:', error);
@@ -328,6 +335,39 @@ export default function Parameter() {
         fetchDataCollectionPoints()
     }
 
+    useEffect(() => {
+        const fetchCollectionPointName = async (data_collection_id) => {
+          // Check if name is already fetched
+          if (collectionPointNames[data_collection_id]) return;
+    
+          try {
+            const { data, error } = await supabase
+              .from('data_collection_points')
+              .select('name')
+              .eq('id', data_collection_id)
+              .single();
+    
+            if (error) {
+              console.error('Error fetching collection point name:', error);
+              return;
+            }
+    
+            // Update state with the fetched name
+            setCollectionPointNames((prevState) => ({
+              ...prevState,
+              [data_collection_id]: data.name,
+            }));
+          } catch (error) {
+            console.error('Error fetching data collection point:', error);
+          }
+        };
+    
+        // Fetch names for each graph data
+        graphData.forEach((item) => {
+          fetchCollectionPointName(item.data_collection_id);
+        });
+      }, [graphData, collectionPointNames]);
+
     
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
@@ -357,32 +397,31 @@ export default function Parameter() {
 
                 <div className="container mx-auto">
 
-             <div style={{display:'grid', gridTemplateColumns:'repeat(2, 1fr)', gap:'15px'}}>
-             {graphData.map((item) => (
-            <div style={{ height:'300px', width:'480px', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px', padding:'5px', borderRadius:'10px'}} key={item.data_collection_id} className="mb-8">
-              <h3 className="text-center text-md font-semibold mb-2 pt-2">
-                Data Collection ID: {item.data_collection_id}
-              </h3>
-              <Line
-                data={{
-                  labels: item.logs.map((log) =>
-                    new Date(log.log_date).toLocaleDateString()
-                  ),
-                  datasets: [
-                    {
-                      label: `Collection ID: ${item.data_collection_id}`,
-                      data: item.logs.map((log) => log.value),
-                      fill: false,
-                      borderColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-                      tension: 0.4,
-                    },
-                  ],
-                }}
-                options={{ responsive: true }}
-              />
-            </div>
-          ))}
-             </div>
+                <div style={{ width: '100%', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px', padding: '10px', borderRadius: '10px' }}>
+        <h3 className="text-center text-lg font-semibold mb-4">All Collection Points</h3>
+        <Line
+            data={{
+                labels: graphData.length > 0 ? graphData[0].logs.map((log) => new Date(log.log_date).toLocaleDateString()) : [],
+                datasets: graphData.map((item) => ({
+                    label: collectionPointNames[item.data_collection_id] || `Collection Point ${item.data_collection_id}`,
+                    data: item.logs.map((log) => log.value),
+                    fill: false,
+                    borderColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+                    tension: 0.4,
+                })),
+            }}
+            options={{
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                },
+                scales: {
+                    x: { display:false },
+                    y: { title: { display: false, text: parameterUnit || 'Value' } },
+                },
+            }}
+        />
+    </div>
                     {/* <div className="mt-4">
                         <h2 className="text-l text-center">Data Collection Points</h2>
                         <table className="min-w-full bg-white">

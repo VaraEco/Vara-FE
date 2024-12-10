@@ -7,7 +7,32 @@ import Button from '../Common/CommonComponents/Button';
 import { apiClient } from '../../assets/Config/apiClient';
 import { useNavigate } from 'react-router-dom';
 import IconDelete from '../Common/CommonComponents/IconDelete';
-import { Line } from 'react-chartjs-2';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    TimeScale,
+  } from 'chart.js';
+
+  ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+    TimeScale // Ensure TimeScale is registered
+  );
+  
+  import 'chartjs-adapter-date-fns';
+import { Line, Scatter } from 'react-chartjs-2';
+import 'chartjs-adapter-date-fns'; 
 
 export default function Parameter() {
     const [collectionData, setCollectionData] = useState([]);
@@ -23,6 +48,7 @@ export default function Parameter() {
     const [parameterUnit, setParameterUnit] = useState('');
     const [graphData, setGraphData] = useState([])
     const [collectionPointNames, setCollectionPointNames] = useState({});
+    const [graphType, setGraphType] = useState('linegraph')
 
     const navigate = useNavigate();
 
@@ -368,6 +394,21 @@ export default function Parameter() {
         });
       }, [graphData, collectionPointNames]);
 
+
+      const predefinedColors = [
+        '#FF6384', // Red
+        '#36A2EB', // Blue
+        '#FFCE56', // Yellow
+        '#4BC0C0', // Teal
+        '#9966FF', // Purple
+        '#FF9F40', // Orange
+        '#E7E9ED', // Grey
+        '#8E44AD', // Violet
+        '#27AE60', // Green
+        '#F39C12', // Amber
+    ];
+    
+
     
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
@@ -398,15 +439,21 @@ export default function Parameter() {
                 <div className="container mx-auto">
 
                 <div style={{ width: '100%', boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px', padding: '10px', borderRadius: '10px' }}>
+        <div>
         <h3 className="text-center text-lg font-semibold mb-4">All Collection Points</h3>
-        <Line
+        <select style={{border:'1px solid black', padding:'8px', borderRadius:'10px', float:'right'}} onChange={(e)=> setGraphType(e.target.value)} name="" id="">
+            <option value="linegraph">Display Line Graph</option>
+            <option value="bargraph">Display Scatter Graph</option>
+        </select>
+        </div>
+        {graphType === 'linegraph' ? <Line
             data={{
-                labels: graphData.length > 0 ? graphData[0].logs.map((log) => new Date(log.log_date).toLocaleDateString()) : [],
-                datasets: graphData.map((item) => ({
+                labels: [],
+                datasets: graphData.map((item, index) => ({
                     label: collectionPointNames[item.data_collection_id] || `Collection Point ${item.data_collection_id}`,
-                    data: item.logs.map((log) => log.value),
+                    data: item.logs.map((log) => ({ x: new Date(log.log_date), y: log.value })),
                     fill: false,
-                    borderColor: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+                    borderColor: predefinedColors[index % predefinedColors.length],
                     tension: 0.4,
                 })),
             }}
@@ -416,11 +463,40 @@ export default function Parameter() {
                     legend: { position: 'top' },
                 },
                 scales: {
-                    x: { display:false },
-                    y: { title: { display: false, text: parameterUnit || 'Value' } },
+                    x: {
+                        type: 'time',
+                        time: { unit: 'day', tooltipFormat: 'PP' },
+                        title: { display: false, text: 'Date' },
+                      },
+                      y: { title: { display: false, text: parameterUnit || 'Value' } },
                 },
             }}
-        />
+        /> : <Scatter
+        data={{
+            labels: [],
+            datasets: graphData.map((item, index) => ({
+                label: collectionPointNames[item.data_collection_id] || `Collection Point ${item.data_collection_id}`,
+                data: item.logs.map((log) => ({ x: new Date(log.log_date), y: log.value })),
+                fill: false,
+                backgroundColor: predefinedColors[index % predefinedColors.length],
+                pointRadius: 4,
+            })),
+        }}
+        options={{
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: { unit: 'day', tooltipFormat: 'PP' },
+                    title: { display: false, text: 'Date' },
+                  },
+                  y: { title: { display: false, text: parameterUnit || 'Value' } },
+            },
+        }}
+    /> }
     </div>
                     {/* <div className="mt-4">
                         <h2 className="text-l text-center">Data Collection Points</h2>

@@ -18,60 +18,67 @@ const AddAdminPopup = ({ setAdminPopup, setFlag }) => {
     setIsValidEmail(emailRegex.test(newEmail));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setAdminPopup(false);
-    let entityId = mainConfig.QUEST_ENTITY_ID;
+    const entityId = mainConfig.QUEST_ENTITY_ID;
     generalFunction.showLoader();
-    let json = {
+  
+    const json = {
       ownerUserId: generalFunction.getUserId(),
       email: email.toLowerCase(),
       entityId,
       name,
       inviteLink: window.location.origin,
     };
-
-    let request = generalFunction.createUrl(`api/entities/${ownerDetails?.ownerEntityId}/invite`);
-    axios
-      .post(request.url, json, { headers: {...request.headers, apiKey: ownerDetails?.apiKey} })
-      .then(async (res) => {
-        const data = res.data;
-        if (data.success == false) {
-          let errMsg = data.error ? data.error : "Unable to Invite Member";
-          Toast.error({ text: "Error Occurred" + "\n" + errMsg });
-          generalFunction.hideLoader();
-        } else if (data.success == true) {
-          Toast.success({
-            text:
-              "Congratulations!!!" +
-              "\n" +
-              "Member has been invited successfully.",
-          });
-          //////////////////////////
-          // Role created successfully, update roles in supabase
-          // let data = {
-          //   role: "ADMIN",
-          //   email: email.toLowerCase(),
-          // }
-          ////////////////////////
-          let data = await generalFunction.supabase_addData("users", json);
-          if (!!data.length) {
-            await generalFunction.createUserPermission({user_id: `${data[0].id}`, role: "ADMIN", assigned_by: `${localStorage.getItem("varaUserId")}`, status: true})
-          }
-
-          setFlag((prev) => !prev);
-          setTimeout(function () {
-            generalFunction.hideLoader();
-          }, 500);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        Toast.error({
-          text: "Error Occurred" + "\n" + "Unable to Invite Member",
-        });
-        generalFunction.hideLoader();
+  
+    const request = generalFunction.createUrl(
+      `api/entities/${ownerDetails?.ownerEntityId}/invite`
+    );
+  
+    try {
+      const res = await axios.post(request.url, json, {
+        headers: { ...request.headers, apiKey: ownerDetails?.apiKey },
       });
-  };
+  
+      const data = res.data;
+  
+      if (data.success === false) {
+        const errMsg = data.error || "Unable to Invite Member";
+        Toast.error({ text: "Error Occurred\n" + errMsg });
+      } else {
+        Toast.success({
+          text: "Congratulations!!!\nMember has been invited successfully.",
+        });
+  
+        try {
+          const userData = await generalFunction.supabase_addData("users", json);
+          if (userData.length) {
+            await generalFunction.createUserPermission({
+              user_id: `${userData[0].id}`,
+              role: "ADMIN",
+              assigned_by: `${localStorage.getItem("varaUserId")}`,
+              status: true,
+            });
+          }
+        } catch (permissionError) {
+          Toast.error({
+            text: "Error Occurred\nFailed to update user permissions.",
+          });
+        }
+  
+        setFlag((prev) => !prev);
+      }
+    } catch (err) {
+      console.error(err);
+      Toast.error({
+        text: "Error Occurred\nUnable to Invite Member",
+      });
+    } finally {
+      generalFunction.hideLoader();
+    }
+  };  
+
+  const isFormValid = name && isValidEmail && email
 
   return (
     <div
@@ -136,11 +143,12 @@ const AddAdminPopup = ({ setAdminPopup, setFlag }) => {
           <button
             className="text-sm px-8 py-2.5 rounded-[10px] pl-[40px] pr-[40px]"
             style={{
-              background: bgColors[`${theme}-primary-bg-color-0`],
+              background: isFormValid ? bgColors[`${theme}-primary-bg-color-0`] : '#d1d1d1',
               color: "white",
               whiteSpace: "nowrap",
             }}
             onClick={handleSave}
+            disabled={!isFormValid}
           >
             Save
           </button>

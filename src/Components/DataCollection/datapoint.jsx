@@ -537,7 +537,7 @@ export default function DataPoint() {
           </div>
         </div>
 
-        <DataGraph chartData={AllValues} />
+        <DataGraph chartData={[...AllValues].sort((a, b) => new Date(a.log_date) - new Date(b.log_date))} />
 
         <Table
           fields={tableFields}

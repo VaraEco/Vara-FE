@@ -31,7 +31,7 @@ import {
   );
   
   import 'chartjs-adapter-date-fns';
-import { Line, Scatter } from 'react-chartjs-2';
+import { Bar, Line, Scatter } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns'; 
 
 export default function Parameter() {
@@ -407,9 +407,90 @@ export default function Parameter() {
         '#27AE60', // Green
         '#F39C12', // Amber
     ];
-    
 
+    const colors = [
+        "rgba(75, 192, 192, 0.5)", // Light blue
+        "rgba(255, 99, 132, 0.5)", // Light red
+        "rgba(255, 159, 64, 0.5)", // Light blue
+        ,
+        "rgba(153, 102, 255, 0.5)", // Light purple
+        "rgba(255, 159, 64, 0.5)", // Light orange
+      ];
+
+      const formatDateToMonthYear = (isoDate) => {
+        const date = new Date(isoDate);
+        return date.toLocaleString('en-US', { month: 'short', year: 'numeric' }); // Formats to 'Jul 2021'
+      };
     
+    const flattedArray = graphData.flatMap(item =>
+        item.logs.map(log => new Date(log.log_date).toLocaleDateString()) // Flatten dates for the x-axis
+    )
+
+    console.log('flatted---array', flattedArray);
+
+    const flattedValues = graphData.flatMap(item =>
+        item.logs.map(log => log.value) // Flatten dates for the x-axis
+    ) // Flatten the values for the dataset
+    
+    console.log('flatted---values', flattedValues);
+
+    const flattenedData = graphData.reduce((acc, collection) => {
+        collection.logs.forEach((log) => {
+          acc.push({
+            label: log.log_date,
+            value: log.value,
+            collectionId: collection.data_collection_id,
+          });
+        });
+        return acc;
+      }, []);
+
+      const chartData = {
+        labels: flattenedData.map((entry) => formatDateToMonthYear(entry.label || '')),
+        datasets: [
+          {
+            label: [] ,
+            data: flattenedData.map((entry) => entry.value || 0), // Corresponding values
+            backgroundColor: flattenedData.map((entry) => {
+                const colorIndex = entry.collectionId ? (entry.collectionId - 1) % colors.length : 0;
+                return predefinedColors[colorIndex] || "rgba(0, 0, 0, 0.5)"; // Default color as fallback
+            }),
+            // borderColor: flattenedData.map((entry) => {
+            //     const colorIndex = entry.collectionId ? (entry.collectionId - 1) % colors.length : 0;
+            //     const color = colors[colorIndex] || "rgba(0, 0, 0, 0.5)"; // Default color as fallback
+            //     return color.replace("0.5", "1"); // Ensure `.replace` is called on a valid string
+            // }),
+            
+            borderWidth: 0,
+          },
+        ],
+      };
+
+      const options = {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: false,
+              text: "Date",
+            },
+          },
+          y: {
+            title: {
+              display: false,
+              text: "Value",
+            },
+            beginAtZero: true,
+          },
+        },
+        plugins: {
+          tooltip: {
+            mode: "index",
+            intersect: false,
+          },
+        },
+      };
+
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
             <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-5xl">
@@ -443,10 +524,11 @@ export default function Parameter() {
         <h3 className="text-center text-lg font-semibold mb-4">All Collection Points</h3>
         <select style={{border:'1px solid black', padding:'8px', borderRadius:'10px', float:'right'}} onChange={(e)=> setGraphType(e.target.value)} name="" id="">
             <option value="linegraph">Display Line Graph</option>
-            <option value="bargraph">Display Scatter Graph</option>
+            <option value="bargraph">Display Bar Graph</option>
+            <option value="scattergraph">Display Scatter Graph</option>
         </select>
         </div>
-        {graphType === 'linegraph' ? <Line
+        {graphType === 'linegraph' ? (<Line
             data={{
                 labels: [],
                 datasets: graphData.map((item, index) => ({
@@ -465,13 +547,13 @@ export default function Parameter() {
                 scales: {
                     x: {
                         type: 'time',
-                        time: { unit: 'day', tooltipFormat: 'PP' },
+                        time: { unit: 'month', tooltipFormat: 'PP' },
                         title: { display: false, text: 'Date' },
                       },
                       y: { title: { display: false, text: parameterUnit || 'Value' } },
                 },
             }}
-        /> : <Scatter
+        />) : graphType == 'scattergraph' ? (<Scatter
         data={{
             labels: [],
             datasets: graphData.map((item, index) => ({
@@ -490,13 +572,14 @@ export default function Parameter() {
             scales: {
                 x: {
                     type: 'time',
-                    time: { unit: 'day', tooltipFormat: 'PP' },
+                    time: { unit: 'month', tooltipFormat: 'PP' },
                     title: { display: false, text: 'Date' },
                   },
                   y: { title: { display: false, text: parameterUnit || 'Value' } },
             },
         }}
-    /> }
+    />) :  graphType == 'bargraph' ? (<Bar  data={chartData} options={options}  />
+    ) : null}
     </div>
                     {/* <div className="mt-4">
                         <h2 className="text-l text-center">Data Collection Points</h2>

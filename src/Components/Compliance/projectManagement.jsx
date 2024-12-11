@@ -154,9 +154,18 @@ export default function ProjectManagement() {
     const selectedUser = allUers.find(user=> user.name == project.lead)
 
     console.log(project, 'sel00000000000000000000');
+    console.log(selectedUser, 'sel--userrr');
+    
+    if (!selectedUser) {
+      alert('Invite cannot be sent to invalid Lead');
+      e.target.checked = project.reminder;
+      return;
+    }
     
     try {
       // Send updated reminder status to backend
+      console.log('inside post req---->');
+      
       await axios.post(mainConfig.REMINDER_BASE_URL, {
         email: selectedUser.emails[0], // Assuming `lead` contains the email
         taskName: project.project,

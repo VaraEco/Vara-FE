@@ -11,7 +11,7 @@ function AnalyticsGraph({chartData, headers, allData}) {
     const [selectedUnit, setSelectedUnit] = useState('');; 
     const [filteredData, setFilteredData] = useState([]);
     const [selectedPeriod, setSelectedPeriod] = useState("all")
-
+    const [rowType, setRowType] = useState('gridRow')
     const [filteredHeaders,setFilteredHeaders] = useState([])
 
     const graphRef = useRef(null)
@@ -251,6 +251,13 @@ function AnalyticsGraph({chartData, headers, allData}) {
         <option value="single">Display Individually</option>
         <option value="multi">Display In One</option>
       </select>
+
+      <select disabled={displayType==="multi" ? true : false} onChange={(e)=> setRowType(e.target.value)} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px'}}>
+        {/* <option value="">Display Graph</option> */}
+        <option value="gridrow">Display Single Row</option>
+        <option value="singlerow">Display 2 Rows</option>
+      </select>
+
       <select disabled={displayType==="single" ? true : false} onChange={handleUnitChange} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px',}}>
         {Object.keys(groupedData).map(item=> <option value={item}>{item}</option>)}
       </select>
@@ -288,9 +295,9 @@ function AnalyticsGraph({chartData, headers, allData}) {
 
 <div ref={displayType === 'single' ? graphRef : null} style={{marginTop:'50px'}}>
 {displayType === 'single' && (
-        <div style={{ display: 'grid', gridTemplateColumns:'repeat(2, 1fr)', gap: '20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: rowType === 'singlerow' ? 'repeat(2, 1fr)' : '1fr', gap: '20px' }}>
           {datasets.map((dataset, index) => (
-            <div key={index} style={{ border: '1px solid #ddd', padding:'10px', width:'500px', height:'350px', margin:'auto' }}>
+            <div key={index} style={{ border: '1px solid #ddd', padding:'10px', width: rowType == 'singlerow' ? '600px' : '1200px', height:'350px', margin:'auto' }}>
               <h3>{dataset.label}</h3>
               {/* Render individual chart for each dataset */}
               {chartType === 'linegraph' && <Line data={{ labels: filteredHeaders, datasets: [dataset] }} options={options} />}

@@ -7,6 +7,8 @@ import DescriptionArea from '../Common/CommonComponents/DescriptionArea'
 import { useParams } from 'react-router-dom';
 import IconEdit from '../Common/CommonComponents/IconEdit';
 import IconDelete from '../Common/CommonComponents/IconDelete';
+import axios from 'axios';
+import { mainConfig } from '../../assets/Config/appConfig';
 
 export default function ProjectPage() {
   const project_fields = [
@@ -24,7 +26,8 @@ export default function ProjectPage() {
     { id: 'status', label: 'Status', type: 'text', table: true, popup: true},
     { id: 'due_date', label: 'Due Date', type: 'date', table: true, popup: true},
     { id: 'lead', label: 'Lead', type: 'text', table: true, popup: true},
-    { id: 'description', label: 'Description', type: 'text', table: true, popup: true}
+    { id: 'description', label: 'Description', type: 'text', table: true, popup: true},
+    {id: 'reminder', label: 'Opt-in For Reminder', type: 'checkbox', table: true, popup: false, not_required: true}
   ];
 
   const empty_task_fields = {task: '', status: '', due_date: '', lead: '', description: '', project_id: '', task_id: ''}
@@ -39,6 +42,9 @@ export default function ProjectPage() {
     task_id: ''
   });
 
+  const [allUers, setAllUsers] = useState([])
+  const ownerDetails = JSON.parse(localStorage.getItem("adminDetails"));
+
   // Get project ID
   const { id } = useParams();
   // Get all info of the project
@@ -52,7 +58,8 @@ export default function ProjectPage() {
     status: '',
     due_date: '',
     lead: '',
-    description: ''
+    description: '',
+    reminder: false
   });
   const [taskTracker, setTaskTracker] = useState(0);
   // PopUp for tasks
@@ -61,6 +68,26 @@ export default function ProjectPage() {
   // For editing
   const [isEditOpen, setEditOpen] = useState(false);
   const [rowIndex, setRowIndex] = useState(-1);
+
+  useEffect(() => {
+    const getAdmins = async () => {
+        
+        let request = generalFunction.createUrl(`api/entities/${ownerDetails?.ownerEntityId}/admins?userId=${generalFunction.getUserId()}`);
+        const { data } = await axios.get(
+            request.url,
+            {
+                headers: {...request.headers, apiKey: ownerDetails?.apiKey},
+            }
+        );
+        console.log('data-data',data.data);
+        
+        let filteredData = data.data.filter((user) => !mainConfig.ALLOWED_ADMIN.includes(user.emails[0]) && user.isActive);
+        setAllUsers(filteredData)
+       console.log('filtered users:::::', filteredData);
+       
+    };
+    getAdmins();
+}, []);
 
   useEffect(() => {
     const getData = async () => {
@@ -122,6 +149,7 @@ export default function ProjectPage() {
         due_date: newTask.due_date,
         lead: newTask.lead,
         description: newTask.description,
+        reminder: newTask.reminder,
         company_id: await generalFunction.getCompanyId()
     }
     generalFunction.createTableRow(`task_management`, newTask_);
@@ -146,17 +174,77 @@ export default function ProjectPage() {
   };
   
   const handleAddRow = () => {
+    console.log('clicked on add task');
+    
     const errors = generalFunction.validateData(newTask, TaskTable);
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
-    setAllTasks((prevData) => [...prevData, newTask]);
+
+    const newTaskWithReminder = {...newTask, reminder: false}
+    setAllTasks((prevData) => [...prevData, newTaskWithReminder]);
     handleClosePopup();
   };
 
+  async function handleReminderToggle(e, project) {
+    const updatedReminder = e.target.checked;
+  
+    const selectedUser = allUers.find(user=> user.name == project.lead)
+
+    console.log(project, 'sel00000000000000000000');
+    console.log(selectedUser, 'sel--userrr');
+    
+    if (!selectedUser) {
+      alert('Invite cannot be sent to invalid Lead');
+      e.target.checked = project.reminder;
+      return;
+    }
+    
+    try {
+      // Send updated reminder status to backend
+      console.log('inside post req---->');
+      
+      await axios.post(`${mainConfig.REMINDER_BASE_URL}/each-task-reminder`, {
+        email: selectedUser.emails[0], // Assuming `lead` contains the email
+        taskName: project.task,
+        dueDate: project.due_date,
+        reminder: updatedReminder,
+        description: project.description
+      });
+
+      await generalFunction.editTask({
+        ...project,
+        reminder: updatedReminder,
+      });
+  
+      // Update the local state to reflect the change
+      setAllTasks((prevTask) =>
+        prevTask.map((p) =>
+          p.task_id === project.task_id
+            ? { ...p, reminder: updatedReminder }
+            : p
+        )
+      );
+    } catch (error) {
+      console.error('Error updating reminder status:', error);
+    }
+  }
+
   const TaskTable = task_fields.filter(field => field.table);
-  const TaskPopUp = task_fields.filter(field => field.popup);
+  const TaskPopUp = task_fields.filter(field => field.popup).map(field => {
+    if (field.id === 'lead') {
+        return {
+            ...field,
+            type: 'select',
+            options: allUers.map(user => ({
+                value: user.id, // Assuming `id` is the unique identifier
+                label: user.name // Assuming `name` is the display name
+            }))
+        };
+    }
+    return field;
+});
 
   // Functions to edit task
 
@@ -249,6 +337,7 @@ export default function ProjectPage() {
         tableData={AllTasks}
         hasActions={true}
         actions={actions}
+        handleReminderToggle={handleReminderToggle}
       />
       <div className="mb-6 mt-10 flex items-center justify-center">
         <Button

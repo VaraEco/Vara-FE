@@ -166,7 +166,7 @@ export default function ProjectManagement() {
       // Send updated reminder status to backend
       console.log('inside post req---->');
       
-      await axios.post(mainConfig.REMINDER_BASE_URL, {
+      await axios.post(`${mainConfig.REMINDER_BASE_URL}/send-reminder`, {
         email: selectedUser.emails[0], // Assuming `lead` contains the email
         taskName: project.project,
         dueDate: project.due_date,

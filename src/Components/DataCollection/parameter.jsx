@@ -31,7 +31,7 @@ import {
   );
   
   import 'chartjs-adapter-date-fns';
-import { Bar, Line, Scatter } from 'react-chartjs-2';
+import { Bar, Line, Pie, Scatter } from 'react-chartjs-2';
 import 'chartjs-adapter-date-fns'; 
 
 export default function Parameter() {
@@ -426,13 +426,13 @@ export default function Parameter() {
         item.logs.map(log => new Date(log.log_date).toLocaleDateString()) // Flatten dates for the x-axis
     )
 
-    console.log('flatted---array', flattedArray);
+    // console.log('flatted---array', flattedArray);
 
     const flattedValues = graphData.flatMap(item =>
         item.logs.map(log => log.value) // Flatten dates for the x-axis
     ) // Flatten the values for the dataset
     
-    console.log('flatted---values', flattedValues);
+    // console.log('flatted---values', flattedValues);
 
     const flattenedData = graphData.reduce((acc, collection) => {
         collection.logs.forEach((log) => {
@@ -491,6 +491,32 @@ export default function Parameter() {
         },
       };
 
+      const pieTotal = graphData.map(item=> item.logs.map(log=> log.value).reduce((acc, num)=> acc+num, 0))
+      const totalValue = pieTotal.reduce((sum, val)=> sum+val, 0)
+
+      const percentageTotal = pieTotal.map(value=> ((value / totalValue) * 100).toFixed(2))
+      console.log(percentageTotal, 'totallllllll value');
+
+      const pieoptions = {
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              callback: (value) => `${value}%`,
+            },
+          },
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: (context) => `${context.raw}%`,
+            },
+          },
+        },
+      };
+      
+
     return (
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
             <div className="w-full p-6 m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-5xl">
@@ -525,35 +551,24 @@ export default function Parameter() {
         <select style={{border:'1px solid black', padding:'8px', borderRadius:'10px', float:'right'}} onChange={(e)=> setGraphType(e.target.value)} name="" id="">
             <option value="linegraph">Display Line Graph</option>
             <option value="bargraph">Display Bar Graph</option>
-            <option value="scattergraph">Display Scatter Graph</option>
+            <option value="piegraph">Display Pie Graph</option>
+            {/* <option value="scattergraph">Display Scatter Graph</option> */}
         </select>
         </div>
         {graphType === 'linegraph' ? (<Line
             data={{
-                labels: [],
-                datasets: graphData.map((item, index) => ({
-                    label: collectionPointNames[item.data_collection_id] || `Collection Point ${item.data_collection_id}`,
-                    data: item.logs.map((log) => ({ x: new Date(log.log_date), y: log.value })),
-                    fill: false,
-                    borderColor: predefinedColors[index % predefinedColors.length],
+                labels: graphData.map(item=> collectionPointNames[item.data_collection_id]),
+                datasets: [{
+                    label: [],
+                    data: percentageTotal,
+                    fil: false,
+                    borderColor: predefinedColors.map(item=> item),
                     tension: 0.4,
-                })),
+                }]
             }}
-            options={{
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
-                },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: { unit: 'month', tooltipFormat: 'PP' },
-                        title: { display: false, text: 'Date' },
-                      },
-                      y: { title: { display: false, text: parameterUnit || 'Value' } },
-                },
-            }}
-        />) : graphType == 'scattergraph' ? (<Scatter
+            options={pieoptions}
+        />)
+        : graphType == 'scattergraph' ? (<Scatter
         data={{
             labels: [],
             datasets: graphData.map((item, index) => ({
@@ -578,8 +593,26 @@ export default function Parameter() {
                   y: { title: { display: false, text: parameterUnit || 'Value' } },
             },
         }}
-    />) :  graphType == 'bargraph' ? (<Bar  data={chartData} options={options}  />
-    ) : null}
+    />) :  graphType == 'bargraph' ? (<Bar  data={{
+        labels: graphData.map(item=> collectionPointNames[item.data_collection_id]),
+        datasets: [{
+            label: [],
+            data: percentageTotal,
+            backgroundColor: predefinedColors.map(item=> item)
+        }]
+    }} options={options}  />
+    ) : graphType == 'piegraph' ? (<div style={{width:'65%', margin:'auto'}}>
+
+<Pie data={{
+        labels: graphData.map(item=> collectionPointNames[item.data_collection_id]),
+        datasets: [{
+            label: [],
+            data: percentageTotal,
+            backgroundColor: predefinedColors.map(item=> item),
+            hoverOffset: 10
+        }],
+    }}/>
+    </div>) : null}
     </div>
                     {/* <div className="mt-4">
                         <h2 className="text-l text-center">Data Collection Points</h2>

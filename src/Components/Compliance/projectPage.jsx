@@ -25,7 +25,7 @@ export default function ProjectPage() {
     { id: 'task', label: 'Task', type: 'text', table: true, popup: true},
     { id: 'status', label: 'Status', type: 'text', table: true, popup: true},
     { id: 'due_date', label: 'Due Date', type: 'date', table: true, popup: true},
-    { id: 'lead', label: 'Lead', type: 'text', table: true, popup: true},
+    { id: 'lead', label: 'Project Members', type: 'text', table: true, popup: true},
     { id: 'description', label: 'Description', type: 'text', table: true, popup: true},
     {id: 'reminder', label: 'Opt-in For Reminder', type: 'checkbox', table: true, popup: false, not_required: true}
   ];
@@ -69,25 +69,30 @@ export default function ProjectPage() {
   const [isEditOpen, setEditOpen] = useState(false);
   const [rowIndex, setRowIndex] = useState(-1);
 
+  const getAdmins = async () => {
+    try {
+      let request = generalFunction.createUrl(
+        `api/entities/${ownerDetails?.ownerEntityId}/admins?userId=${generalFunction.getUserId()}`
+      );
+      const { data } = await axios.get(request.url, {
+        headers: { ...request.headers, apiKey: ownerDetails?.apiKey },
+      });
+      console.log('data-data', data.data);
+  
+      let filteredData = data.data.filter(
+        (user) => !mainConfig.ALLOWED_ADMIN.includes(user.emails[0]) && user.isActive
+      );
+      setAllUsers(filteredData);
+      console.log('filtered users:::::', filteredData);
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+    }
+  };
+  
+  // Call getAdmins inside useEffect to populate `allUers` initially
   useEffect(() => {
-    const getAdmins = async () => {
-        
-        let request = generalFunction.createUrl(`api/entities/${ownerDetails?.ownerEntityId}/admins?userId=${generalFunction.getUserId()}`);
-        const { data } = await axios.get(
-            request.url,
-            {
-                headers: {...request.headers, apiKey: ownerDetails?.apiKey},
-            }
-        );
-        console.log('data-data',data.data);
-        
-        let filteredData = data.data.filter((user) => !mainConfig.ALLOWED_ADMIN.includes(user.emails[0]) && user.isActive);
-        setAllUsers(filteredData)
-       console.log('filtered users:::::', filteredData);
-       
-    };
     getAdmins();
-}, []);
+  }, []);
 
   useEffect(() => {
     const getData = async () => {
@@ -152,7 +157,10 @@ export default function ProjectPage() {
         reminder: newTask.reminder,
         company_id: await generalFunction.getCompanyId()
     }
-    generalFunction.createTableRow(`task_management`, newTask_);
+    await generalFunction.createTableRow(`task_management`, newTask_);
+
+    await getAdmins();
+    
     setTask({ 
       task_id: '',
       task: '', 
@@ -194,6 +202,8 @@ export default function ProjectPage() {
 
     console.log(project, 'sel00000000000000000000');
     console.log(selectedUser, 'sel--userrr');
+
+    console.log(ProjectInfo[0], 'project_infooooooooooooo');
     
     if (!selectedUser) {
       alert('Invite cannot be sent to invalid Lead');
@@ -203,7 +213,7 @@ export default function ProjectPage() {
     
     try {
       // Send updated reminder status to backend
-      console.log('inside post req---->');
+      console.log('inside post req---->', project.due_date);
       
       await axios.post(`${mainConfig.REMINDER_BASE_URL}/each-task-reminder`, {
         email: selectedUser.emails[0], // Assuming `lead` contains the email
@@ -216,6 +226,7 @@ export default function ProjectPage() {
       await generalFunction.editTask({
         ...project,
         reminder: updatedReminder,
+        project_id: ProjectInfo[0].project_id
       });
   
       // Update the local state to reflect the change

@@ -219,6 +219,10 @@ export default function DataPoint() {
 
   const handleSaveNewEntry = async () => {
     console.log('dateeeeeeeeeeee', newEntry.log_date);
+
+  if (newEntry.log_date) {
+    localStorage.setItem('log_date', newEntry.log_date);
+  }
     
     try {
       const { log_id, evidenceUrl } = await generalFunction.createUserDataEntry(

@@ -20,7 +20,8 @@ const Table = ({
   handleOpenImport,
   importType = "",
   handleFilterData,
-  handleFilterMethod
+  handleFilterMethod,
+  isToggleLoading
 }) => {
   fields = fields.filter((field) => !field.no_show);
   const navigate = useNavigate();
@@ -211,17 +212,41 @@ const Table = ({
                         formatDate(row[field.id])
                       ) : field.type === "checkbox" ? (
                         <label
-                          onClick={(e) => e.stopPropagation()}
-                          class="inline-flex items-center cursor-pointer"
-                        >
-                          <input
-                            onChange={(e) => handleReminderToggle(e, row)}
-                            type="checkbox"
-                            checked={row.reminder}
-                            class="sr-only peer"
-                          />
-                          <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                        </label>
+    onClick={(e) => e.stopPropagation()}
+    className="inline-flex items-center cursor-pointer"
+  >
+    <input
+      onChange={(e) => handleReminderToggle(e, row)}
+      type="checkbox"
+      checked={row.reminder}
+      className="sr-only peer"
+    />
+    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+    {isToggleLoading === row.id && ( // Show spinner only for the loading row
+      <span className="ml-2">
+        <svg
+          className="animate-spin h-6 w-6 text-blue-600"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8v8H4z"
+          ></path>
+        </svg>
+      </span>
+    )}
+  </label>
                       ) : field.type === "url" && row[field.id] ? (
                         <a
                           href={row[field.id]}

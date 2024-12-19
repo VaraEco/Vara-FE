@@ -45,6 +45,8 @@ export default function ProjectPage() {
   const [allUers, setAllUsers] = useState([])
   const ownerDetails = JSON.parse(localStorage.getItem("adminDetails"));
 
+  const [isToggleLoading, setIsToggleLoading] = useState(null)
+
   // Get project ID
   const { id } = useParams();
   // Get all info of the project
@@ -212,6 +214,7 @@ export default function ProjectPage() {
     }
     
     try {
+      setIsToggleLoading(project.id);
       // Send updated reminder status to backend
       console.log('inside post req---->', project.due_date);
       
@@ -239,6 +242,9 @@ export default function ProjectPage() {
       );
     } catch (error) {
       console.error('Error updating reminder status:', error);
+    }
+    finally{
+      setIsToggleLoading(null)
     }
   }
 
@@ -349,6 +355,7 @@ export default function ProjectPage() {
         hasActions={true}
         actions={actions}
         handleReminderToggle={handleReminderToggle}
+        isToggleLoading={isToggleLoading}
       />
       <div className="mb-6 mt-10 flex items-center justify-center">
         <Button

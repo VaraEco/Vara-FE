@@ -20,11 +20,11 @@ const PopUp = ({
   newEntry,
   setNewEntry,
   handleRemoveFile,
-  fileName
+  fileName,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState("");
-  
+
   const handleViewClick = (pdfUrl, e) => {
     e.preventDefault();
     setSelectedPdfUrl(pdfUrl);
@@ -37,7 +37,6 @@ const PopUp = ({
   };
 
   const formatDateForInput = (dateString) => {
-    
     if (dateString.includes("/")) {
       const [month, day, year] = dateString.split("/");
       return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
@@ -45,6 +44,21 @@ const PopUp = ({
       return dateString;
     }
     //return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleUseLastDate = () => {
+    // Retrieve the last used date from localStorage
+    const lastDate = localStorage.getItem("log_date");
+
+    // If the lastDate exists, set it to the log_date input field
+    if (lastDate) {
+      handleInputChange({
+        target: {
+          name: "log_date",
+          value: lastDate,
+        },
+      });
+    }
   };
 
   return (
@@ -156,17 +170,33 @@ const PopUp = ({
               ) : field.type === "file" ? (
                 <div>
                   <input
-                  type="file"
-                  id={field.id}
-                  name={field.id}
-                  onChange={handleFileChange}
-                  className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full cursor-pointer bg-blue-500 text-white px-4 py-2 hover:bg-blue-600"
-                />
-                {fileName && <p>{fileName} <span onClick={handleRemoveFile} style={{color:'red', marginLeft:'10px'}}> &times; </span></p>}
+                    type="file"
+                    id={field.id}
+                    name={field.id}
+                    onChange={handleFileChange}
+                    className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full cursor-pointer bg-blue-500 text-white px-4 py-2 hover:bg-blue-600"
+                  />
+                  {fileName && (
+                    <p>
+                      {fileName}{" "}
+                      <span
+                        onClick={handleRemoveFile}
+                        style={{ color: "red", marginLeft: "10px" }}
+                      >
+                        {" "}
+                        &times;{" "}
+                      </span>
+                    </p>
+                  )}
                 </div>
               ) : field.id === "status" ? (
-                <select onChange={handleInputChange} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" name="status" id="">
-                                    <option value="">Change Status</option>
+                <select
+                  onChange={handleInputChange}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-40 p-1 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  name="status"
+                  id=""
+                >
+                  <option value="">Change Status</option>
                   <option value="Not Started">Not Started</option>
                   <option value="In Progress">In Progress</option>
                   <option value="Done">Done</option>
@@ -189,6 +219,20 @@ const PopUp = ({
                   }`}
                   readOnly={readOnly}
                 />
+              )}
+
+              {field.id === "log_date" && !readOnly && (
+                <button
+                  style={{
+                    border: "1px solid black",
+                    width: "100px",
+                    padding: "5px",
+                  }}
+                  onClick={handleUseLastDate}
+                  className="mt-2 w-full"
+                >
+                  Last Used Date
+                </button>
               )}
             </div>
           ))}

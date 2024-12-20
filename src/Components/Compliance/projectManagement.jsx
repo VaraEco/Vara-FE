@@ -45,6 +45,9 @@ export default function ProjectManagement() {
   const ownerDetails = JSON.parse(localStorage.getItem("adminDetails"));
   const [mail, setUserMail] = useState('')
 
+  const [isToggleLoading, setIsToggleLoading] = useState(null)
+  
+
   useEffect(() => {
     const getData = async () => {
       try {
@@ -164,7 +167,7 @@ export default function ProjectManagement() {
     
     try {
       // Send updated reminder status to backend
-      console.log('inside post req---->');
+      setIsToggleLoading(project.id)
       
       await axios.post(`${mainConfig.REMINDER_BASE_URL}/send-reminder`, {
         email: selectedUser.emails[0], // Assuming `lead` contains the email
@@ -188,6 +191,9 @@ export default function ProjectManagement() {
       );
     } catch (error) {
       console.error('Error updating reminder status:', error);
+    }
+    finally{
+      setIsToggleLoading(null)
     }
   }
 
@@ -303,6 +309,7 @@ const handleCloseEdit = () => {
         hasActions={true}
         actions={actions}
         handleReminderToggle={handleReminderToggle}
+        isToggleLoading={isToggleLoading}
       />
       <div className="mb-6 mt-10 flex items-center justify-center">
         <Button

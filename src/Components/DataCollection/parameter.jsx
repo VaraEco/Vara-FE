@@ -392,7 +392,7 @@ export default function Parameter() {
         graphData.forEach((item) => {
           fetchCollectionPointName(item.data_collection_id);
         });
-      }, [graphData, collectionPointNames]);
+      }, [graphData]);
 
 
       const predefinedColors = [

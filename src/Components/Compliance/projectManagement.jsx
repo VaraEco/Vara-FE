@@ -46,7 +46,7 @@ export default function ProjectManagement() {
   const [mail, setUserMail] = useState('')
 
   const [isToggleLoading, setIsToggleLoading] = useState(null)
-  
+  const [users, setUsers] = useState([])
 
   useEffect(() => {
     const getData = async () => {
@@ -81,6 +81,21 @@ export default function ProjectManagement() {
     };
     getAdmins();
 }, []);
+
+useEffect(()=> {
+  async function fetchUsers() {
+    try {
+      const data = await generalFunction.fetchUserPermissions();
+      setUsers(data);
+    } catch (error) {
+      console.log(error.message);
+    }
+  }
+  fetchUsers()
+}, [])
+
+console.log('aalluusseerrss--->', users);
+
 
   const handleOpenPopup = () => {
     setValidationErrors({});
@@ -125,9 +140,9 @@ export default function ProjectManagement() {
     }));    
 
     if(name === "lead"){
-      const selectedUser = allUers.find(user=> user.name === value)
-      console.log(selectedUser.name, selectedUser.emails[0]);
-      setUserMail(selectedUser.emails[0])
+      const selectedUser = users.find(user=> user.user_name === value)
+      console.log(selectedUser, 'sel-use');
+      setUserMail(selectedUser.user_email)
     }
   };
 
@@ -152,12 +167,13 @@ export default function ProjectManagement() {
   };
 
   async function handleReminderToggle(e, project) {
+    console.log(users, 'userrrsssss');
     const updatedReminder = e.target.checked;
   
-    const selectedUser = allUers.find(user=> user.name == project.lead)
+    const selectedUser = users.find(user=> user.user_name == project.lead)
 
     console.log(project, 'sel00000000000000000000');
-    console.log(selectedUser, 'sel--userrr');
+    console.log(selectedUser.user_email, 'sel--userrr-emaill');
     
     if (!selectedUser) {
       alert('Invite cannot be sent to invalid Lead');
@@ -170,7 +186,7 @@ export default function ProjectManagement() {
       setIsToggleLoading(project.id)
       
       await axios.post(`${mainConfig.REMINDER_BASE_URL}/send-reminder`, {
-        email: selectedUser.emails[0], // Assuming `lead` contains the email
+        email: selectedUser.user_email, // Assuming `lead` contains the email
         taskName: project.project,
         dueDate: project.due_date,
         reminder: updatedReminder,
@@ -223,9 +239,9 @@ export default function ProjectManagement() {
         return {
             ...field,
             type: 'select',
-            options: allUers.map(user => ({
-                value: user.id, // Assuming `id` is the unique identifier
-                label: user.name // Assuming `name` is the display name
+            options: users.map(user => ({
+                value: user.user_name, // Assuming `id` is the unique identifier
+                label: user.user_name // Assuming `name` is the display name
             }))
         };
     }

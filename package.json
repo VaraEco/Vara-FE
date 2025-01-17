@@ -23,6 +23,7 @@
     "axios": "^1.6.2",
     "chart.js": "^4.4.7",
     "chartjs-adapter-date-fns": "^3.0.0",
+    "convert-units": "^2.3.4",
     "filepond": "^4.31.1",
     "filepond-plugin-file-rename": "^1.1.8",
     "filepond-plugin-image-exif-orientation": "^1.0.11",

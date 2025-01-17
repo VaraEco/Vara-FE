@@ -43,6 +43,7 @@ export default function ProjectPage() {
   });
 
   const [allUers, setAllUsers] = useState([])
+  const [users, setUsers] = useState([])
   const ownerDetails = JSON.parse(localStorage.getItem("adminDetails"));
 
   const [isToggleLoading, setIsToggleLoading] = useState(null)
@@ -90,6 +91,18 @@ export default function ProjectPage() {
       console.error('Error fetching admins:', error);
     }
   };
+
+  useEffect(()=> {
+    async function fetchUsers() {
+      try {
+        const data = await generalFunction.fetchUserPermissions();
+        setUsers(data);
+      } catch (error) {
+        console.log(error.message);
+      }
+    }
+    fetchUsers()
+  }, [])
   
   // Call getAdmins inside useEffect to populate `allUers` initially
   useEffect(() => {
@@ -200,12 +213,12 @@ export default function ProjectPage() {
   async function handleReminderToggle(e, project) {
     const updatedReminder = e.target.checked;
   
-    const selectedUser = allUers.find(user=> user.name == project.lead)
+    const selectedUser = users.find(user=> user.user_name == project.lead)
 
     console.log(project, 'sel00000000000000000000');
-    console.log(selectedUser, 'sel--userrr');
+    console.log(selectedUser.user_email, 'sel--userrr');
 
-    console.log(ProjectInfo[0], 'project_infooooooooooooo');
+    // console.log(ProjectInfo[0], 'project_infooooooooooooo');
     
     if (!selectedUser) {
       alert('Invite cannot be sent to invalid Lead');
@@ -219,7 +232,7 @@ export default function ProjectPage() {
       console.log('inside post req---->', project.due_date);
       
       await axios.post(`${mainConfig.REMINDER_BASE_URL}/each-task-reminder`, {
-        email: selectedUser.emails[0], // Assuming `lead` contains the email
+        email: selectedUser.user_email, // Assuming `lead` contains the email
         taskName: project.task,
         dueDate: project.due_date,
         reminder: updatedReminder,
@@ -254,9 +267,9 @@ export default function ProjectPage() {
         return {
             ...field,
             type: 'select',
-            options: allUers.map(user => ({
-                value: user.id, // Assuming `id` is the unique identifier
-                label: user.name // Assuming `name` is the display name
+            options: users.map(user => ({
+                value: user.user_name, // Assuming `id` is the unique identifier
+                label: user.user_name, // Assuming `name` is the display name
             }))
         };
     }

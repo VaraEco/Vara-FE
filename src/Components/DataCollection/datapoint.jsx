@@ -155,10 +155,12 @@ export default function DataPoint() {
   };
 
   const handleInputChange = (e) => {
-    console.log("log input change date..............", e.target.value);
+    console.log("log input targetttt..............", e.target);
 
-    const { name, value, type } = e.target;
-    const formattedValue = type === "date" ? formatDateDisplay(value) : value;
+    const { name, value, type, id } = e.target;
+    // console.log("name, value, type, id", name, value, type, id);
+
+    const formattedValue = type === "date" ? formatDateDisplay(value) : name === 'log_unit' && type === 'text' ? value.toLowerCase() : value;
     setNewEntry((prevData) => ({
       ...prevData,
       [name]: formattedValue,
@@ -218,7 +220,35 @@ export default function DataPoint() {
   };
 
   const handleSaveNewEntry = async () => {
+    console.log('all-valuesss', AllValues);
     console.log('dateeeeeeeeeeee', newEntry.log_date);
+
+    const validUnits = ['ml', 'l', 'gms', 'kwh', 'wh', 'kgs'];
+    const unitValue = newEntry.log_unit.trim().toLowerCase();
+    if (newEntry.log_unit && !validUnits.includes(unitValue)) {
+      // If the unit is invalid, show an alert and stop the process
+      alert('Unit must be one of the following: ml, l, gms, kwh, wh, kgs');
+      return; // Stop the form submission if the unit is invalid
+    }
+
+    if(AllValues.length > 0){
+      const firstUnit = AllValues[0].log_unit.trim().toLowerCase()
+
+      if((firstUnit === 'ml' || firstUnit === 'l') && !(unitValue === 'ml' || unitValue  === 'l')){
+        alert('Unit must be either ml or l')
+        return
+      }
+
+      if((firstUnit === 'kwh' || firstUnit === 'wh') && !(unitValue === 'kwh' || unitValue  === 'wh')){
+        alert('Unit must be either kwh or wh')
+        return
+      }
+
+      if((firstUnit === 'gms' || firstUnit === 'kgs') && !(unitValue === 'gms' || unitValue  === 'kgs')){
+        alert('Unit must be either gms or kgs')
+        return
+      }
+    }
 
   if (newEntry.log_date) {
     localStorage.setItem('log_date', newEntry.log_date);
@@ -381,6 +411,39 @@ export default function DataPoint() {
 
   async function handleEditSubmit() {
     console.log("edited clicked");
+
+    const validUnits = ['ml', 'l', 'gms', 'kwh', 'wh', 'kgs'];
+    const unitValue = rowEditData.log_unit.trim().toLowerCase();
+
+    // Check if the unit is valid
+    if (!validUnits.includes(unitValue)) {
+        alert('Unit must be one of the following: ml, l, gms, kwh, wh, kgs');
+        return;
+    }
+
+    if (AllValues.length > 0) {
+      
+      
+      const firstUnit = AllValues[0].log_unit.trim().toLowerCase();
+
+      console.log(AllValues, unitValue, firstUnit);
+
+      if ((firstUnit === 'ml' || firstUnit === 'l') && !(unitValue === 'ml' || unitValue === 'l')) {
+          alert("Unit must be either 'ml' or 'l' because the first entry is 'ml' or 'l'.");
+          return;
+      }
+
+      if ((firstUnit === 'kwh' || firstUnit === 'wh') && !(unitValue === 'kwh' || unitValue === 'wh')) {
+          alert("Unit must be either 'kwh' or 'wh' because the first entry is 'kwh' or 'wh'.");
+          return;
+      }
+
+      if((firstUnit === 'gms' || firstUnit === 'kgs') && !(unitValue === 'gms' || unitValue  === 'kgs')){
+        alert('Unit must be either gms or kgs')
+        return
+      }
+  }
+  
     const unsigned_evidence_url = await generalFunction.editDataPoint(
       rowEditData
     );

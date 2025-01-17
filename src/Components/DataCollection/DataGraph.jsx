@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import { Bar, Line } from 'react-chartjs-2'
+import convert from 'convert-units';
 
 function DataGraph({chartData}) {
+console.log(chartData);
 
     const [chartType, setChartType] = useState('linegraph')
 
@@ -10,7 +12,36 @@ function DataGraph({chartData}) {
     }
 
     const labels = chartData.map(data=> data.log_date)
-    const values = chartData.map(data=> data.value)
+    const values = chartData.map(data => {
+        if (data.log_unit === 'ml') {
+            return convert(data.value).from('ml').to('l'); // Convert from milliliters to liters
+        }
+        if(data.log_unit === 'gms'){
+            return convert(data.value).from('g').to('kg')
+        }
+        if(data.log_unit === 'wh'){
+            return convert(data.value).from('Wh').to('kWh')
+        }
+        return data.value; // If already in L, keep it as it is
+    });
+
+    const units = chartData.map(data=> data.log_unit)
+    console.log('unittsss', units);
+    
+    const getUnitLabel = () => {
+        // Handle cases where units are mixed
+        if (units.includes('ml') || units.includes('l')) {
+            return 'Liters';
+        }
+        if (units.includes('wh') || units.includes('kwh')) {
+            return 'Kilowatt-Hour';
+        }
+        if (units.includes('gms') || units.includes('kgs')) {
+            return 'Kilogram';
+        }
+        // Default to the first unit if no specific logic is matched
+        return units[0];
+    };
     
     const xLabel = 'Log Date'
     const yLabel = 'Value'
@@ -45,7 +76,7 @@ function DataGraph({chartData}) {
             },
             title: {
                 display: true,
-                // text: `Line Graph`,
+                text: `**All the values have been converted to ${getUnitLabel()}`,
                 font: {
                     size: 18, 
                     family: 'Arial, sans-serif', 

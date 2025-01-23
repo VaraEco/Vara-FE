@@ -263,6 +263,7 @@ const openEdit = (row, index) => {
 
 const handleDelete = (row)=>{
   generalFunction.deleteProject(row)
+  generalFunction.deleteAllTasks(row)
   setAllProjects(previousProject=> previousProject.filter(project=> project.id !== row.id))
 }
 

@@ -4,10 +4,10 @@ import React, { useRef, useState, useEffect, useMemo } from 'react'
 import { Bar, Line, Pie, Scatter } from 'react-chartjs-2'
 import  Button from '../Common/CommonComponents/Button'
 
-function AnalyticsGraph({chartData, headers, allData}) {
+function CollectionPointsAnalytics({chartData, headers, allData}) {
 
-    const [chartType, setChartType] = useState('linegraph')
-    const [displayType, setDisplayType] = useState('single')
+    const [chartType, setChartType] = useState('bargraph')
+    const [displayType, setDisplayType] = useState('multi')
     const [selectedUnit, setSelectedUnit] = useState('');; 
     const [filteredData, setFilteredData] = useState([]);
     const [selectedPeriod, setSelectedPeriod] = useState("all")
@@ -25,7 +25,7 @@ function AnalyticsGraph({chartData, headers, allData}) {
     console.log('chartData------>', chartData, 'headersss==>' ,headers, 'alldataaaa===>', allData);
     
     useEffect(() => {
-      if (displayType === 'single') {
+      if (displayType === 'multi') {
         setFilteredData(chartData); // Default to the complete dataset for single display
         setFilteredHeaders(headers); // Default headers for single display
       }
@@ -74,7 +74,7 @@ function AnalyticsGraph({chartData, headers, allData}) {
     
         const filteredHeader = headers.filter(dateStr => {
             try {
-                const [day, month, year] = dateStr.split('-');
+                const [year, month, day] = dateStr.split('-');
                 const headerDate = new Date(year, month - 1, day);
                 headerDate.setHours(0, 0, 0, 0);
                 return headerDate >= startDate;
@@ -123,19 +123,29 @@ function AnalyticsGraph({chartData, headers, allData}) {
 
     console.log(groupedData);
 
-    function handleUnitChange(e){
-      const unit = e.target.value;
-      setSelectedUnit(unit);
-      if (displayType === 'multi' && groupedData[unit]) {
-        setFilteredData(groupedData[unit]);  // Set filtered data based on the selected unit
-      }
-      console.log(filteredData);
+    function handleUnitChange(e) {
+        const unit = e.target.value;
+        setSelectedUnit(unit);
       
-    }
+        if (unit === "") {
+          // If "All Units" is selected, show all units by merging the data from all units
+          const allUnitsData = Object.values(groupedData).flat(); // Merge all the unit data
+          setFilteredData(allUnitsData); // Set all units data to filteredData
+        } else if (displayType === "multi" && groupedData[unit]) {
+          // If a specific unit is selected, show data for that unit
+          setFilteredData(groupedData[unit]);
+        }
+      
+        console.log(filteredData);
+      }
+      
 
 const datasets = useMemo(() => {
   return (displayType === 'multi' ? filteredData : chartData).map((row, index) => {
-    const dataValues = filteredHeaders.map(header => row[header]);
+    const dataValues = filteredHeaders.map((header) => {
+      // If the date is missing, add 0 for the missing value
+      return row[header] !== undefined ? row[header] : 0;
+    });
     
     const label = row[""] || `Dataset ${index + 1}`;
 
@@ -249,27 +259,30 @@ const datasets = useMemo(() => {
     <div style={{marginBottom: '50px', marginTop: '15px' }}>
       <div style={{display:'flex', justifyContent:'center', gap:'20px'}}>
       <select onChange={(e)=> setDisplayType(e.target.value)} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px'}}>
-        {/* <option value="">Display Graph</option> */}
+      <option value="multi">Display In One</option>
         <option value="single">Display Individually</option>
-        <option value="multi">Display In One</option>
+        
       </select>
 
       <select disabled={displayType==="multi" ? true : false} onChange={(e)=> setRowType(e.target.value)} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px'}}>
-        {/* <option value="">Display Graph</option> */}
         <option value="gridrow">Display Single Row</option>
         <option value="singlerow">Display 2 Rows</option>
       </select>
 
-      <select disabled={displayType==="single" ? true : false} onChange={handleUnitChange} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px',}}>
-        {Object.keys(groupedData).map(item=> <option value={item}>{item}</option>)}
-      </select>
-        <select onChange={(e)=> setChartType(e.target.value)} style={{border:'1px solid gray', padding:'5px 10px', float:'right', borderRadius:'10px'}}>
-            {/* <option value="linegraph">Select Graph</option> */}
+<select onChange={(e)=> setChartType(e.target.value)} style={{border:'1px solid gray', padding:'5px 10px', float:'right', borderRadius:'10px'}}>
+            <option value="linegraph">Select Graph</option>
             <option value="linegraph">Line Graph</option>
             <option value="bargraph">Bar Graph</option>
-            <option value="pie">Pie Graph</option>
+            {/* <option value="pie">Pie Graph</option> */}
             <option value="scatter">Scatter Graph</option>
         </select>
+
+      <select disabled={displayType==="single" ? true : false} onChange={handleUnitChange} style={{border:'1px solid gray', padding:'5px 10px', float:'left', borderRadius:'10px',}}>
+      <option value="">All Units</option>
+
+        {Object.keys(groupedData).map(item=> <option value={item}>{item}</option>)}
+      </select>
+       
 
         <select onChange={handlePeriodChange} style={{border:'1px solid gray', padding:'5px 10px', float:'right', borderRadius:'10px'}}>
         <option value="all">All</option>
@@ -318,4 +331,4 @@ const datasets = useMemo(() => {
   )
 }
 
-export default AnalyticsGraph
+export default CollectionPointsAnalytics

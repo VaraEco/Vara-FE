@@ -393,6 +393,20 @@ export const generalFunction = {
         }
     },
 
+    deleteAllTasks: async (rowData)=> {
+
+        const company_id = await generalFunction.getCompanyId()
+        const {data, error} = await supabase
+        .from('task_management')
+        .delete()
+        .eq('project_id', rowData.project_id)
+        .eq('company_id', company_id)
+
+        if(error){
+            throw error
+        }
+    },
+
     fetchCompliances: async () => {
         const { data } = await supabase
           .from(`compliance`)

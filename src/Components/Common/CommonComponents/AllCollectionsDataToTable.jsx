@@ -114,7 +114,7 @@ function AllCollectionsDataToTable({ allData }) {
                   key={index}
                   onClick={() => handleColumnSel(index)}
                 >
-                  {headerItem}
+                  {headerItem.split('_')[0]}
                 </th>
               ))}
             </tr>

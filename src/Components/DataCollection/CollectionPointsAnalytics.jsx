@@ -255,6 +255,9 @@ const datasets = useMemo(() => {
         })
       }
 
+      const trimmedHeaders = filteredHeaders.map(header => header.split('_')[0]);
+
+
   return (
     <div style={{marginBottom: '50px', marginTop: '15px' }}>
       <div style={{display:'flex', justifyContent:'center', gap:'20px'}}>
@@ -284,12 +287,12 @@ const datasets = useMemo(() => {
       </select>
        
 
-        <select onChange={handlePeriodChange} style={{border:'1px solid gray', padding:'5px 10px', float:'right', borderRadius:'10px'}}>
+        {/* <select onChange={handlePeriodChange} style={{border:'1px solid gray', padding:'5px 10px', float:'right', borderRadius:'10px'}}>
         <option value="all">All</option>
             <option value="7days">7 Days</option>
             <option value="1month">1 Month</option>
             <option value="6months">6 Months</option>
-        </select>
+        </select> */}
 
         <Button label='Download Graph' handleFunction={downloadGraphAsPDF}/>
       </div>
@@ -297,13 +300,13 @@ const datasets = useMemo(() => {
        <div ref={displayType === 'multi' ? graphRef : null} style={{height:'650px', display:displayType==='multi' ? 'block' : 'none'}}>
        {displayType === 'multi' && (
   chartType === 'linegraph' ? (
-    <Line data={{ labels: filteredHeaders, datasets }} options={options} />
+    <Line data={{ labels: trimmedHeaders, datasets }} options={options} />
   ) : chartType === 'bargraph' ? (
-    <Bar data={{ labels: filteredHeaders, datasets }} options={options} />
+    <Bar data={{ labels: trimmedHeaders, datasets }} options={options} />
   ) : chartType === 'pie' ? (
     <div style={{display:'flex', justifyContent:'center', height:'450px', border: '1px solid #ddd', padding:'10px', width:'50%', margin:'auto', marginTop:'25px'}}><Pie data={{ labels:'', datasets }}/></div>
   ): chartType === 'scatter' ? (  // Render Scatter chart
-    <Scatter data={{ labels: filteredHeaders, datasets }} options={options} />
+    <Scatter data={{ labels: trimmedHeaders, datasets }} options={options} />
 ) : null
 )}
        </div>
@@ -315,11 +318,11 @@ const datasets = useMemo(() => {
             <div key={index} style={{ border: '1px solid #ddd', padding:'10px', width: rowType == 'singlerow' ? '600px' : '1200px', height:'350px', margin:'auto' }}>
               <h3>{dataset.label}</h3>
               {/* Render individual chart for each dataset */}
-              {chartType === 'linegraph' && <Line data={{ labels: filteredHeaders, datasets: [dataset] }} options={options} />}
-              {chartType === 'bargraph' && <Bar data={{ labels: filteredHeaders, datasets: [dataset] }} options={options} />}
+              {chartType === 'linegraph' && <Line data={{ labels: trimmedHeaders, datasets: [dataset] }} options={options} />}
+              {chartType === 'bargraph' && <Bar data={{ labels: trimmedHeaders, datasets: [dataset] }} options={options} />}
               <div style={{height:'300px', display:'flex', justifyContent:'center'}}>
               {chartType === 'pie' && <Pie data={{ labels:'', datasets: [dataset] }}/>}
-              {chartType === 'scatter' && <Scatter data={{ labels: filteredHeaders, datasets: [dataset] }} options={options} />}
+              {chartType === 'scatter' && <Scatter data={{ labels: trimmedHeaders, datasets: [dataset] }} options={options} />}
               </div>
             </div>
           ))}

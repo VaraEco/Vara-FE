@@ -3,10 +3,12 @@ import { supabase } from '../../supabaseClient';
 import './parameteroverview.css';
 import { generalFunction } from '../../assets/Config/generalFunction';
 import Button from '../Common/CommonComponents/Button';
-import {Link} from 'react-router-dom';
+import {json, Link} from 'react-router-dom';
 import { userPermissions } from '../../assets/Config/accessControl';
 import * as XLSX from 'xlsx';
 import ToastPop from '../Common/CommonComponents/ToastPop';
+import CsvToTable from '../Common/CommonComponents/CsvToTable';
+import AllCollectionsDataToTable from '../Common/CommonComponents/AllCollectionsDataToTable';
 
 export default function Parameteroverview() {
     const [tableData, setTableData] = useState([]);
@@ -25,13 +27,16 @@ export default function Parameteroverview() {
     const [selectedPopupFacility, setSelectedPopupFacility] = useState('');
     const [selectedPopupProcess, setSelectedPopupProcess] = useState('');
     const [hasPermission, setHasPermission] = useState(false);
-
+    
+    const [collectionPointsData, setCollectionPointsData] = useState([])
+    const [viewCSVcomponnet, setViewCSVcomponnet] = useState(false)
     const [showToast, setShowToast] = useState(false);
 
     const lsData = localStorage.getItem('adminDetails');
     const adminDetails = lsData ? JSON.parse(lsData) : {};
     const userId = adminDetails.userId; // Access userId from the parsed object
     
+    const [allfetchedData, setAllFetchedData] = useState([])
 
     useEffect(() => {
         fetchMeasurement();
@@ -324,8 +329,48 @@ export default function Parameteroverview() {
             }, 2000);
         }
     }
+    
 
     const renderTable = () => {
+        console.log('table-dataa', tableData);
+        
+        for (const facilityKey in tableData) {
+            if (tableData.hasOwnProperty(facilityKey)) {
+              const facility = tableData[facilityKey];
+              
+              // Iterate over each process in the facility's processes
+              for (const processKey in facility.processes) {
+                if (facility.processes.hasOwnProperty(processKey)) {
+                  const process = facility.processes[processKey];
+                  
+                  // Extract process_id
+                  const process_id = process.process_id;
+                  
+                  // Iterate over parameters to extract para_id
+                  for (const parameterKey in process.parameters) {
+                    if (process.parameters.hasOwnProperty(parameterKey)) {
+                      const parameter = process.parameters[parameterKey];
+                      
+                      // Check if parameter has para_id
+                      if (parameter.para_id !== undefined) {
+                        // Extract para_id
+                        const para_id = parameter.para_id;
+                        
+                        // Store the result
+                        collectionPointsData.push({ process_id, para_id, parameter_name: parameterKey });
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          
+        localStorage.setItem('para_name', JSON.stringify(collectionPointsData))
+        console.log('collectionPointsData', collectionPointsData);
+        fetchParameterLogs()
+        // fetchMultipleParameterLogs(collectionPointsData)
+
         const facilities = Object.keys(tableData);
         if (facilities.length === 0) return <p>No data available</p>;
 
@@ -386,7 +431,11 @@ export default function Parameteroverview() {
         return (
             
             <div>
-                <div className='flex justify-end mr-4 relative bottom-[60px]'>
+                <div className='flex justify-end mr-4 relative bottom-[60px] gap-3'>
+                <Button
+                        label='View Analytics'
+                        handleFunction={()=> setViewCSVcomponnet(true)}
+                        />
                 <Button
                             label="Download Excel"
                             handleFunction={exportToExcel}
@@ -445,208 +494,349 @@ export default function Parameteroverview() {
         );
     };
 
+    async function fetchParameterLogs() {
+        if (!collectionPointsData || collectionPointsData.length === 0) {
+          console.error('No collection points data available');
+          return;
+        }
+      
+        // Construct the OR query
+        const orQuery = collectionPointsData
+          .map(({ process_id, para_id }) => {
+            if (process_id && para_id) {
+              return `process_id.eq.${process_id},para_id.eq.${para_id}`;
+            }
+            return null;
+          })
+          .filter(Boolean) // Remove null or undefined values
+          .join(',');
+      
+        if (!orQuery) {
+          console.error('Invalid orQuery string constructed');
+          return;
+        }
+      
+        try {
+          const { data, error } = await supabase
+            .from('parameter_log')
+            .select('*')
+            .or(orQuery);
+      
+          if (error) {
+            console.error('Error fetching data:', error.message);
+            return;
+          }
+      
+          console.log('Fetched data:', data);
+          setAllFetchedData(data);
+        } catch (err) {
+          console.error('Unexpected error:', err.message);
+        }
+      }
+      
+      // Call the function
+    //   fetchParameterLogs();
+
+    // async function fetchParameterName(para_id){
+    //     try {
+    //         const {data, error} = await supabase
+    //         .from('parameter')
+    //         .select('*')
+    //         .eq('para_id', para_id)
+    //         .single()
+
+    //         if(error){
+    //             console.log('error fetching parameter details', error);
+    //             return
+    //         }
+    //         console.log('fetchParameterName====>',data);
+            
+    //         return data
+    //     } catch (error) {
+    //         console.log('error fetching parameter details', error);
+    //             return
+    //     }
+    // }
+      
+
+      const formatAllData = (allfetchedData)=> {
+
+        const arr = []
+
+        allfetchedData.forEach(item => {
+            const { data_collection_id, log_unit, log_date, value, log_id, para_id } = item;
+            const formattedDate = new Date(log_date).toISOString().split("T")[0];
+
+            // const names = fetchParameterName(para_id)
+
+            const lsParaName = JSON.parse(localStorage.getItem('para_name'))
+
+            const output = {
+                // Match `para_id` with `lsParaName` and add `parameter_name` or fallback to `Para Id`
+                "": (() => {
+                  const match = lsParaName.find((item) => item.para_id === para_id);
+                  return match ? match.parameter_name : para_id
+                })(),
+                
+                // Set unit based on `log_unit`
+                'Unit': (log_unit === 'l' || log_unit === 'ml') 
+                  ? 'l/ml' 
+                  : (log_unit === 'wh' || log_unit === 'kwh') 
+                    ? 'wh/kwh' 
+                    : 'kgs/gms',
+              };
+
+              const dateWithLogId = formattedDate
+              output[dateWithLogId] = value
+
+              arr.push(output)
+
+
+            })
+
+        return arr
+
+      }
+
+      const allPointsData = formatAllData(allfetchedData)
+
+      console.log('allPointsData===>', allPointsData);
+
+      const formatRevisedData = (data) => {
+        const result = [];
+      
+        data.forEach((item) => {
+            const paraId = item[""]
+          const unit = item.Unit;
+      
+          // Check if an object with the same Para Id already exists in the result array
+          let existingEntry = result.find((entry) => entry[""] === paraId);
+      
+          if (!existingEntry) {
+            // If no existing entry, create a new one
+            existingEntry = { "": paraId, Unit: unit };
+            result.push(existingEntry);
+          }
+      
+          // Add the date-value pair to the existing entry
+          const dateKey = Object.keys(item).find((key) => key !== "" && key !== "Unit");
+          existingEntry[dateKey] = item[dateKey];
+        });
+      
+        return result;
+      };
+      
+
+      const updatedData = formatRevisedData(allPointsData)
+
+      console.log('updated data===>', updatedData);
+
+      
+
     return (
+        
         <div className="relative flex flex-col justify-center overflow-hidden mt-20">
-            <div className="w-full m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-5.5xl">
-                <div className="container mx-auto">
-                {hasPermission ? (
-                    <>
-                    <h1 className="text-xl text-center mb-4 p-2">Data Collection</h1>
-                    {renderTable()}
-                    <div className="flex justify-center mt-4">
-                        <Button
-                            label="Add Parameter"
-                            handleFunction={handleOpenParameterPopup}
-                            additionalClasses="bg-red-500"
-                        />
-                    </div>
-                    </>
-                ) : (
-                    <div className="text-left p-10 mt-4 text-black-500">
-                        Contact Admin
-                    </div>
-                )}
+           {viewCSVcomponnet ? <AllCollectionsDataToTable allData={updatedData}/> :  <div className="w-full m-auto bg-white rounded-md shadow-xl shadow-black-600/40 lg:max-w-5.5xl">
+            
+            <div className="container mx-auto">
+            {hasPermission ? (
+                <>
+                <h1 className="text-xl text-center mb-4 p-2">Data Collection</h1>
+                {!viewCSVcomponnet && renderTable()}
+                <div className="flex justify-center mt-4">
+                    <Button
+                        label="Add Parameter"
+                        handleFunction={handleOpenParameterPopup}
+                        additionalClasses="bg-red-500"
+                    />
+                </div>
+                </>
+            ) : (
+                <div className="text-left p-10 mt-4 text-black-500">
+                    Contact Admin
+                </div>
+            )}
 
-                    {isParameterPopupOpen && (
-                            <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-                                <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
-                                <h2 className="text-lg font-bold mb-4">Add Parameter</h2>
-                                <form onSubmit={(e) => e.preventDefault()}>
-                                    <div className="mb-4">
-                                        <label htmlFor="parameter" className="block text-sm font-medium text-gray-700">Parameter</label>
-                                        <input
-                                            type="text"
-                                            id="parameter"
-                                            name="parameter"
-                                            value={newParameterData.parameter}
-                                            onChange={(e) => handleInputChange(e, setNewParameterData)}
-                                            className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="unit" className="block text-sm font-medium text-gray-700">Unit</label>
-                                        <input
-                                            type="text"
-                                            id="unit"
-                                            name="unit"
-                                            value={newParameterData.unit}
-                                            onChange={(e) => handleInputChange(e, setNewParameterData)}
-                                            className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
-                                        />
-                                    </div>
-                                    <div className="mb-4">
-                                        <label htmlFor="facility" className="block text-sm font-medium text-gray-700">Select Facility</label>
-                                        <select
-                                            id="facility"
-                                            name="facility"
-                                            value={selectedFacility}
-                                            onChange={handleFacilityChange}
-                                            className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
-                                        >
-                                            <option value="">Select a facility</option>
-                                            {facilities.map(facility => (
-                                                <option key={facility.facility_id} value={facility.facility_id}>
-                                                    {facility.facility_name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    {(
-                                        <div className="mb-4">
-                                            <label htmlFor="process" className="block text-sm font-medium text-gray-700">Select Process</label>
-                                            <select
-                                                id="process"
-                                                name="process"
-                                                value={selectedProcess}
-                                                onChange={handleProcessChange}
-                                                className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
-                                            >
-                                                <option value="">Select a process</option>
-                                                {processes.map(process => (
-                                                    <option key={process.process_id} value={process.process_id}>
-                                                        {process.process_name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    )}
-                                    <Button
-                                        label="Save Process-Facility"
-                                        handleFunction={addProcessFacilityMapping}
+                {isParameterPopupOpen && (
+                        <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+                            <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
+                            <h2 className="text-lg font-bold mb-4">Add Parameter</h2>
+                            <form onSubmit={(e) => e.preventDefault()}>
+                                <div className="mb-4">
+                                    <label htmlFor="parameter" className="block text-sm font-medium text-gray-700">Parameter</label>
+                                    <input
+                                        type="text"
+                                        id="parameter"
+                                        name="parameter"
+                                        value={newParameterData.parameter}
+                                        onChange={(e) => handleInputChange(e, setNewParameterData)}
+                                        className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
                                     />
-                                    <div className="mb-4">
-                                        {newParameterData.processFacilityMappings.map((mapping, index) => (
-                                            <div key={index} className="mb-2">
-                                                <span>{mapping.facility_name} - {mapping.process_name}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeProcessFacilityMapping(index)}
-                                                    className="ml-2 text-red-500 hover:text-red-700"
-                                                >
-                                                    X
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="flex justify-end">
-                                        <button
-                                            onClick={handleCloseParameterPopup}
-                                            className="mr-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            onClick={createParameter}
-                                            disabled={loading}
-                                            className={`${buttonColor} px-4 py-2 text-sm font-medium text-white rounded-md hover:bg-blue-600`}
-                                        >
-                                            {loading ? 'Loading...' : 'Add'}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-                    {isProcessParameterPopupOpen && (
-                            <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
-                                <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
-                                <div className="text-center">
-                                <h2 className="text-lg mb-4">Process Parameter Details</h2>
-                                <table className="mt-4 w-full justify-center border-collapse border border-gray-300">
-                                    <thead>
-                                        <tr>
-                                            <th className="border border-gray-300">Facility</th>
-                                            <th className="border border-gray-300">Process</th>
-                                            <th className="border border-gray-300">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {parameterProcessData.map((mapping, index) => (
-                                            <tr key={index}>
-                                                <td className="border border-gray-300">{mapping.process.facility.facility_name}</td>
-                                                <td className="border border-gray-300">{mapping.process.process_name}</td>
-                                                <td className="border border-gray-300">
-                                                    <Button
-                                                        label="Delete"
-                                                        handleFunction={() => deleteProcessParameterMapping(mapping, mapping.id)}
-                                                        additionalClasses="bg-red-500"
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
                                 </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="popup-facility">Facility</label>
+                                <div className="mb-4">
+                                    <label htmlFor="unit" className="block text-sm font-medium text-gray-700">Unit</label>
+                                    <input
+                                        type="text"
+                                        id="unit"
+                                        name="unit"
+                                        value={newParameterData.unit}
+                                        onChange={(e) => handleInputChange(e, setNewParameterData)}
+                                        className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
+                                    />
+                                </div>
+                                <div className="mb-4">
+                                    <label htmlFor="facility" className="block text-sm font-medium text-gray-700">Select Facility</label>
                                     <select
-                                        id="popup-facility"
-                                        name="popup-facility"
-                                        value={selectedPopupFacility}
-                                        onChange={handlePopupFacilityChange}
+                                        id="facility"
+                                        name="facility"
+                                        value={selectedFacility}
+                                        onChange={handleFacilityChange}
+                                        className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
                                     >
                                         <option value="">Select a facility</option>
-                                        {popupFacilities.map(facility => (
+                                        {facilities.map(facility => (
                                             <option key={facility.facility_id} value={facility.facility_id}>
                                                 {facility.facility_name}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="popup-process">Process</label>
-                                    <select
-                                        id="popup-process"
-                                        name="popup-process"
-                                        value={selectedPopupProcess}
-                                        onChange={handlePopupProcessChange}
-                                    >
-                                        <option value="">Select a process</option>
-                                        {popupProcesses.map(process => (
-                                            <option key={process.process_id} value={process.process_id}>
-                                                {process.process_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
+                                {(
+                                    <div className="mb-4">
+                                        <label htmlFor="process" className="block text-sm font-medium text-gray-700">Select Process</label>
+                                        <select
+                                            id="process"
+                                            name="process"
+                                            value={selectedProcess}
+                                            onChange={handleProcessChange}
+                                            className="border border-gray-300 rounded-md shadow-sm mt-1 block w-full"
+                                        >
+                                            <option value="">Select a process</option>
+                                            {processes.map(process => (
+                                                <option key={process.process_id} value={process.process_id}>
+                                                    {process.process_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                                 <Button
-                                    label="Save Process-Parameter"
-                                    handleFunction={addProcessParameterMapping}
-                                    additionalClasses="bg-blue-500 mt-4"
+                                    label="Save Process-Facility"
+                                    handleFunction={addProcessFacilityMapping}
                                 />
-                                <div className="flex justify-end mt-4">
-                                    <Button
-                                        label="Close"
-                                        handleFunction={closeProcessParameterPopup}
-                                        additionalClasses="bg-gray-300"
-                                    />
+                                <div className="mb-4">
+                                    {newParameterData.processFacilityMappings.map((mapping, index) => (
+                                        <div key={index} className="mb-2">
+                                            <span>{mapping.facility_name} - {mapping.process_name}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeProcessFacilityMapping(index)}
+                                                className="ml-2 text-red-500 hover:text-red-700"
+                                            >
+                                                X
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={handleCloseParameterPopup}
+                                        className="mr-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={createParameter}
+                                        disabled={loading}
+                                        className={`${buttonColor} px-4 py-2 text-sm font-medium text-white rounded-md hover:bg-blue-600`}
+                                    >
+                                        {loading ? 'Loading...' : 'Add'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+                {isProcessParameterPopupOpen && (
+                        <div className="z-50 fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+                            <div className="bg-white p-6 w-1/2 min-h-min max-w-4xl max-h-screen rounded-lg overflow-y-auto">
+                            <div className="text-center">
+                            <h2 className="text-lg mb-4">Process Parameter Details</h2>
+                            <table className="mt-4 w-full justify-center border-collapse border border-gray-300">
+                                <thead>
+                                    <tr>
+                                        <th className="border border-gray-300">Facility</th>
+                                        <th className="border border-gray-300">Process</th>
+                                        <th className="border border-gray-300">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {parameterProcessData.map((mapping, index) => (
+                                        <tr key={index}>
+                                            <td className="border border-gray-300">{mapping.process.facility.facility_name}</td>
+                                            <td className="border border-gray-300">{mapping.process.process_name}</td>
+                                            <td className="border border-gray-300">
+                                                <Button
+                                                    label="Delete"
+                                                    handleFunction={() => deleteProcessParameterMapping(mapping, mapping.id)}
+                                                    additionalClasses="bg-red-500"
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="popup-facility">Facility</label>
+                                <select
+                                    id="popup-facility"
+                                    name="popup-facility"
+                                    value={selectedPopupFacility}
+                                    onChange={handlePopupFacilityChange}
+                                >
+                                    <option value="">Select a facility</option>
+                                    {popupFacilities.map(facility => (
+                                        <option key={facility.facility_id} value={facility.facility_id}>
+                                            {facility.facility_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label htmlFor="popup-process">Process</label>
+                                <select
+                                    id="popup-process"
+                                    name="popup-process"
+                                    value={selectedPopupProcess}
+                                    onChange={handlePopupProcessChange}
+                                >
+                                    <option value="">Select a process</option>
+                                    {popupProcesses.map(process => (
+                                        <option key={process.process_id} value={process.process_id}>
+                                            {process.process_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <Button
+                                label="Save Process-Parameter"
+                                handleFunction={addProcessParameterMapping}
+                                additionalClasses="bg-blue-500 mt-4"
+                            />
+                            <div className="flex justify-end mt-4">
+                                <Button
+                                    label="Close"
+                                    handleFunction={closeProcessParameterPopup}
+                                    additionalClasses="bg-gray-300"
+                                />
                             </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
+        </div>}
             {showToast && <ToastPop message="You are now logged in !"/>}
         </div>
     );

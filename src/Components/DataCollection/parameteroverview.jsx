@@ -641,7 +641,7 @@ export default function Parameteroverview() {
             <div className="container mx-auto">
             {hasPermission ? (
                 <>
-                <h1 className="text-xl text-center mb-4 p-2">Data Collection</h1>
+                <h1 className="text-2xl text-center mb-4 p-2">Data Collections</h1>
                 {!viewCSVcomponnet && renderTable()}
                 <div className="flex justify-center mt-4">
                     <Button

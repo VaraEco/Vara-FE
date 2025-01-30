@@ -36,21 +36,29 @@ export const userPermissions = {
         try {
             const UserPermission = await fetchUserPermission();
             if (!UserPermission || !UserPermission[0] || !UserPermission[0].role) {
-                return false;
+                return false; // No user or role found
             }
-
+    
+            console.log('permission', UserPermission, 'page is', page);
+    
             const role = UserPermission[0].role;
-
-            if (role === 'FIELD MANAGER' && page === 'Data Entry') {
-                return true;
-            } else if (role === 'FIELD MANAGER' && page !== 'Data Entry') {
-                return false;
-            } else if (role !== 'FIELD MANAGER' && page === 'Data Entry') {
-                return false;
-            } else if (role === 'NO_ROLE') {
-                return false
+    
+            // If the role is 'FIELD MANAGER', allow access to Home and Data Entry
+            if (role === 'FIELD MANAGER') {
+                if (page === 'Home' || page === 'Data Entry' || page === 'Incident History') {
+                    return true;  // Field Manager can access Home and Data Entry
+                }
+                return false;  // Field Manager can't access other pages (optional restriction)
             }
+    
+            // If the user is not a FIELD MANAGER, deny access to Home and Data Entry
+            if (page === 'Home' || page === 'Data Entry' || page==='Incident History') {
+                return false; // Non-Field Managers cannot access Home or Data Entry
+            }
+    
+            // If the page is not restricted, allow access
             return true;
+    
         } catch (error) {
             console.error('Error fetching user permissions:', error);
             return false;

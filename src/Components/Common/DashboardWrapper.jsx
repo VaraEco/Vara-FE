@@ -36,6 +36,8 @@ export default function DashboardWrapper({ children, selectdRoute }) {
     };
 
     const getPageVisibility = async (route) => {
+        console.log('routes again are->', route);
+        
         const PageVisibility = await userPermissions.hasUserPermissions(route.name);
         return PageVisibility;
     };
@@ -64,6 +66,8 @@ export default function DashboardWrapper({ children, selectdRoute }) {
         const fetchFilteredRoutes = async () => {
             const routes = await filterRoutes(routesConfig);
             setFilteredRoutes(routes);
+            console.log('routes are:', routes);
+            
         };
 
         fetchFilteredRoutes();

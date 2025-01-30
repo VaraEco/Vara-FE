@@ -11,6 +11,8 @@ import {
   IconPaper_folded,
   IconTruck,
   IconListTask,
+  IconHome,
+  IconHistory
 } from "../../Components/Common/SideBarSvg";
 import Dashboard from "../../Components/Dashboard/Dashboard";
 import Login from "../../Components/Login/Login";
@@ -33,6 +35,8 @@ import Chatbot from "../../Components/Compliance/chatbot";
 import DataPoint from "../../Components/DataCollection/datapoint";
 import DataAnalytics from "../../Components/DataCollection/dataanalytics";
 import PrivateRoute from "../../Components/Common/PrivateRoute";
+import Homepage from "../../Components/DataCollection/Homepage";
+import IncidentHistory from "../../Components/DataCollection/IncidentHistory";
 
 export const routesConfig = [
   {
@@ -90,6 +94,24 @@ export const routesConfig = [
     hidden: true,
     isUpper: true,
   },
+
+  {
+    path: "/homepage",
+    name: "Home",
+    logo: IconHome(),
+    component: (
+      <ProviderConfig showTag={false}>
+        <DashboardWrapper selectdRoute={"Home"}>
+          <PrivateRoute>
+          <Homepage></Homepage>
+          </PrivateRoute>
+        </DashboardWrapper>
+      </ProviderConfig>
+    ),
+    hidden: false,
+    isUpper: true,
+  },
+  
   {
     path: "/data_entry",
     name: "Data Entry",
@@ -99,6 +121,23 @@ export const routesConfig = [
         <DashboardWrapper selectdRoute={"Data Entry"}>
           <PrivateRoute>
           <DataEntry></DataEntry>
+          </PrivateRoute>
+        </DashboardWrapper>
+      </ProviderConfig>
+    ),
+    hidden: false,
+    isUpper: true,
+  },
+
+  {
+    path: "/incident_history",
+    name: "Incident History",
+    logo: IconHistory(),
+    component: (
+      <ProviderConfig showTag={false}>
+        <DashboardWrapper selectdRoute={"Incident History"}>
+          <PrivateRoute>
+          <IncidentHistory></IncidentHistory>
           </PrivateRoute>
         </DashboardWrapper>
       </ProviderConfig>

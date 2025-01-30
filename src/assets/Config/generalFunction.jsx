@@ -1079,5 +1079,19 @@ export const generalFunction = {
             chat_id = localStorage.getItem("chatId");
         }
         return chat_id;
+    },
+
+    fetchIncidentHistory: async(userId)=> {
+        const {data, error} = await supabase
+        .from('incident_history')
+        .select('*')
+        .eq('user_id', userId)
+
+        if(error){
+            throw error
+        }
+        
+        return data
     }
+
 }

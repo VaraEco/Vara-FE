@@ -137,7 +137,7 @@ export default function Login() {
                 navigate("/onboarding");
             } else {
                 if(await userPermissions.userEntersDataEntry()){
-                    navigate("/data_entry");
+                    navigate("/homepage");
                 } else {
                     navigate("/data_collection");
                 }
